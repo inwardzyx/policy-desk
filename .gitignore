@@ -1,0 +1,16 @@
+# 构建产物
+target/
+*.class
+*.jar
+
+# 本机工具链（Maven 二进制不进库；换机器按 README 重下）
+tools/apache-maven-*/
+tools/*.zip
+
+# IDE
+.idea/
+*.iml
+
+# 本地配置 / 密钥
+.env
+application-local.yml

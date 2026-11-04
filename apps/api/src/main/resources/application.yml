@@ -1,0 +1,33 @@
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
+
+spring:
+  application:
+    name: policy-desk-api
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      # ★ 展开组件：只有展开才能看到 components.pythonAi（否则永远只有一个总 UP）
+      show-details: always
+
+python-ai:
+  base-url: ${PYTHON_AI_URL:http://127.0.0.1:8028}
+  # ★ 没有默认值：这个头是 Java 与 Python 之间唯一的凭据，留空必须起不来（见 PythonAiProperties）
+  internal-token: ${INTERNAL_TOKEN:}
+  connect-timeout-ms: ${PYTHON_AI_CONNECT_TIMEOUT_MS:2000}
+  # ★ 给足：Python 侧一次问答要跑改写+精排+生成（实测约 3 秒），超时太紧会把"慢"记成"错"
+  read-timeout-ms: ${PYTHON_AI_READ_TIMEOUT_MS:60000}
+
+policy-desk:
+  # M2 的临时角色来源（X-Demo-Roles 头）。M3 接登录后必须关掉，并让网关删掉这个头。
+  demo-roles-header: ${DEMO_ROLES_HEADER:true}
+
+logging:
+  level:
+    com.policydesk: INFO
