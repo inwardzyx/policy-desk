@@ -36,14 +36,17 @@ public class PythonAiClient {
      *
      * @param question  用户问题
      * @param namespace 分区；null 表示默认库
-     * @param roles     当前用户的角色（由登录态推出）
+     * @param acl       当前用户**可读的 ACL 集合**（由 {@code AclProjector} 从角色投影而来）。
+     *                  ★ 注意它发的头叫 {@code X-Auth-Roles} —— 那是 Python 侧既有的头名，
+     *                  语义是"这次请求带的权限标记"，和块里的 {@code chunk.acl} 是同一套词表。
+     *                  改名会让 v1 的认证路径失效（且它已有测试），所以保头名、改语义说明。
      */
-    public Dto.ChatResponse chat(String question, String namespace, List<String> roles, String sessionId) {
+    public Dto.ChatResponse chat(String question, String namespace, List<String> acl, String sessionId) {
         try {
             return http.post()
                     .uri("/internal/chat")
                     .header("X-Internal-Token", internalToken)
-                    .header("X-Auth-Roles", String.join(",", roles))
+                    .header("X-Auth-Roles", String.join(",", acl))
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new Dto.ChatRequest(question, namespace, sessionId))
                     .retrieve()

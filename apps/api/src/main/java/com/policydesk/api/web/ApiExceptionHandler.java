@@ -1,6 +1,7 @@
 package com.policydesk.api.web;
 
 import com.policydesk.api.client.PythonAiClient;
+import com.policydesk.api.security.AclProjector;
 import com.policydesk.api.service.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,21 @@ public class ApiExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
         pd.setTitle("登录失败");
         pd.setDetail(e.getMessage());
+        return pd;
+    }
+
+    /**
+     * 角色没登记 ACL 映射。
+     *
+     * <p>★ 用 403 而不是 500：这是「身份为真、权限未定义」，属于配置问题，
+     * 不是服务端崩溃。给 500 会让监控把它计入系统故障，淹没真正的事故。
+     */
+    @ExceptionHandler(AclProjector.UnknownRole.class)
+    public ProblemDetail onUnknownRole(AclProjector.UnknownRole e) {
+        log.warn("拒绝请求：{}", e.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
+        pd.setTitle("权限未定义");
+        pd.setDetail("当前角色没有对应的数据权限，请联系管理员");
         return pd;
     }
 }
