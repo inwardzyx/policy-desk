@@ -14,3 +14,8 @@ tools/*.zip
 # 本地配置 / 密钥
 .env
 application-local.yml
+
+# 前端
+node_modules/
+dist/
+*.local

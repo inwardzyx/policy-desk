@@ -3,7 +3,7 @@
 > 一个**能证明自己没变坏**的企业制度问答系统。
 > 每条答案带可核验出处，答不出就明确拒答，改动发布前必须过评测门禁。
 
-**当前进度：M5 完成**（登录 → JWT → ACL 投影 → **配额** → AI → **审计落库**）。
+**当前进度：M6a 完成**（Vue3 前端：登录 + 问答两页，经 Vite 代理直连 Java；文档页待补）。
 
 ---
 
@@ -41,7 +41,7 @@ $mysql = "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
 
 ---
 
-## 怎么跑（三个进程）
+## 怎么跑（四个进程）
 
 ```powershell
 # 1) Python AI 服务（另一个仓库，端口 8028）
@@ -57,7 +57,25 @@ $env:DB_USER="policy"; $env:DB_PASSWORD="policy_dev_2026"
 $env:JWT_SECRET="dev-secret-please-change-0123456789abcdef"   # >= 32 字节
 $env:SEED_DEMO_USERS="true"; $env:DEMO_PASSWORD="policy123"
 D:\idea\bin\java.exe -jar target\policy-desk-api-0.1.0-SNAPSHOT.jar
+
+# 3) 前端（开发热更新）
+cd D:\policy-desk\apps\web
+npm install          # 首次
+npm run dev          # http://localhost:5173
+
+# 3') 或跑构建产物
+npm run build
+npx vite preview --port 5174     # http://localhost:5174
 ```
+
+★ **端口 5173 可能被别的项目占着**（本机就有一个 `D:\agent-eval-sandbox\web` 的 vite）。
+`--strictPort` 会直接报错而不是悄悄换端口；换一个端口跑就行（代理配置跟着端口走，不用改）。
+
+★ `vite preview` 只监听 `::1`（IPv6 localhost），所以用 `http://localhost:5174` 访问；
+用 `127.0.0.1:5174` 会"拒绝连接"——这不是服务没起来。
+
+★ 开发期不配 CORS：前端用 Vite 代理把 `/api` 转到 8081，生产用 nginx 同源反代。
+**不给后端留一个只在开发时才需要的跨域口子。**
 
 构建（本机没装 Maven，仓库自带一份在 `tools/` 下）：
 
@@ -117,6 +135,26 @@ id  user_id  hash10       decision       n_blocks  took_ms  trace_id
 - 带 `namespace` 的请求会把 Python 的 `trace_id` 落库，两边能对上：
   `context.trace_id = deca72a3acf24c25b5f262792e0f1e5c` ↔ `audit.trace_id = deca72a3acf24c25b5f262792e0f1e5c`
 
+### 前端（M6a，2026-11-05 实测）
+
+```text
+npm run build   → 32 modules，dist JS 98.79 kB（gzip 38.74 kB）
+npm run test    → 3 passed（登录存令牌 / 401 清令牌 / ProblemDetail 透出）
+```
+
+经 `vite preview`（5174）的代理打到真实后端：
+
+| 检查 | 结果 |
+|---|---|
+| `GET /` | 200，HTML 含 `<div id="app">` 与打包后的 JS/CSS |
+| `GET /assets/index-*.js` | 200，98,794 bytes |
+| `POST /api/auth/login`（经代理） | 200，拿到 JWT，`roles=["hr"]` |
+| `POST /api/chat`（经代理，带令牌） | 200，`knowledge_hit=true`，1 条引用 `学生纪律处分管理规定.md｜第四章-第二十六条` |
+| `POST /api/chat`（匿名） | **401** —— 前端据此清令牌并跳登录页 |
+
+★ 前端**不引 UI 组件库**：两个页面用不到，引一个要多 200KB 且要处理按需引入。
+等文档页上来再评估。
+
 ### ACL 隔离（M4 端到端，2026-11-05 实测）
 
 准备：往 `acltest` 分区上传一篇 **`acl=hr`** 的文档（「一线城市出差住宿补贴上限 800 元」），
@@ -149,7 +187,8 @@ id  user_id  hash10       decision       n_blocks  took_ms  trace_id
 | M3 | users 表 + BCrypt + JWT（`X-Demo-Roles` 已默认关闭） | ✅ |
 | M4 | 角色 → ACL 投影（端到端验证：同一问题，hr 看得到、employee 看不到） | ✅ |
 | M5 | 配额（每日 N 次，可换 Redis）+ 审计落库/查询 | ✅ |
-| M6 | Vue 前端：登录 / 问答 / 文档 | ⬜ |
+| M6a | Vue3 前端：登录 + 问答（Vite 代理直连 Java） | ✅ |
+| M6b | 文档页（需要 v1 补一个 `/internal/kb/{ns}/documents` GET） | ⬜ |
 | M7 | 部署（Compose + Nginx + Tunnel） | ⬜ |
 
 ### 配额与审计（M5）
