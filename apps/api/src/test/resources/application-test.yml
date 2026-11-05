@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    # ★ 测试用 H2（MySQL 兼容模式）：判据不能依赖"本机 MySQL 恰好开着、恰好有那个库"。
+    #   真库的验证放到 README 的「初始化数据库」之后手跑一次。
+    url: jdbc:h2:mem:policydesk;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-test.sql
+
+policy-desk:
+  jwt:
+    secret: test-only-secret-0123456789abcdef-0123456789
+    ttl-minutes: 120
+  seed-demo-users: true
+  demo-password: policy123
+  demo-roles-header: false
+
+python-ai:
+  base-url: http://127.0.0.1:9
+  internal-token: test-token

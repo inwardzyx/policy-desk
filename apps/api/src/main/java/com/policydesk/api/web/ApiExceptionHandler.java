@@ -1,6 +1,7 @@
 package com.policydesk.api.web;
 
 import com.policydesk.api.client.PythonAiClient;
+import com.policydesk.api.service.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,20 @@ public class ApiExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.GATEWAY_TIMEOUT);
         pd.setTitle("AI 服务不可达");
         pd.setDetail("连接或读取超时，请检查 Python 服务是否在运行");
+        return pd;
+    }
+
+    /**
+     * 登录失败。
+     *
+     * <p>★ 无论是"没有这个用户"还是"口令错了"，都返回同一句话 —— 否则这个接口
+     * 就变成一份免费的账号枚举器。
+     */
+    @ExceptionHandler(AuthService.BadCredentials.class)
+    public ProblemDetail onBadCredentials(AuthService.BadCredentials e) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
+        pd.setTitle("登录失败");
+        pd.setDetail(e.getMessage());
         return pd;
     }
 }

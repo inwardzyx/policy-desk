@@ -5,6 +5,20 @@ server:
 spring:
   application:
     name: policy-desk-api
+  datasource:
+    # ★ 时区显式写成 Asia/Shanghai：不写的话 JDBC 会按 JVM 默认时区换算，
+    #   容器里（UTC）与本地（+08）算出来的"今天"差 8 小时，配额与审计都会错位。
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/policy_desk?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USER:policy}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  configuration:
+    # 数据库列 user_id ↔ 实体 userId，靠这条映射（不写就要满地图 @TableField）
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
 
 management:
   endpoints:
@@ -13,7 +27,7 @@ management:
         include: health,info
   endpoint:
     health:
-      # ★ 展开组件：只有展开才能看到 components.pythonAi（否则永远只有一个总 UP）
+      # ★ 展开组件：只有展开才能看到 components.pythonAi 与 components.db（否则永远只有一个总 UP）
       show-details: always
 
 python-ai:
@@ -21,12 +35,19 @@ python-ai:
   # ★ 没有默认值：这个头是 Java 与 Python 之间唯一的凭据，留空必须起不来（见 PythonAiProperties）
   internal-token: ${INTERNAL_TOKEN:}
   connect-timeout-ms: ${PYTHON_AI_CONNECT_TIMEOUT_MS:2000}
-  # ★ 给足：Python 侧一次问答要跑改写+精排+生成（实测约 3 秒），超时太紧会把"慢"记成"错"
+  # ★ 给足：Python 侧一次问答要跑改写+精排+生成（实测约 3-5 秒），超时太紧会把"慢"记成"错"
   read-timeout-ms: ${PYTHON_AI_READ_TIMEOUT_MS:60000}
 
 policy-desk:
-  # M2 的临时角色来源（X-Demo-Roles 头）。M3 接登录后必须关掉，并让网关删掉这个头。
-  demo-roles-header: ${DEMO_ROLES_HEADER:true}
+  jwt:
+    # ★ 没有默认值：HS256 密钥必须由部署方提供（>= 32 字节），否则起不来
+    secret: ${JWT_SECRET:}
+    ttl-minutes: ${JWT_TTL_MINUTES:120}
+  # ★ 演示种子账号：默认关。开启时若无口令会**启动失败**（不静默跳过）
+  seed-demo-users: ${SEED_DEMO_USERS:false}
+  demo-password: ${DEMO_PASSWORD:}
+  # ★ M2 的临时角色头：M3 起默认关。开着时也只对**未认证**请求生效
+  demo-roles-header: ${DEMO_ROLES_HEADER:false}
 
 logging:
   level:
