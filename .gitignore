@@ -22,3 +22,4 @@ dist/
 
 # dev.ps1 的日志与 PID
 _run/
+deploy/.env

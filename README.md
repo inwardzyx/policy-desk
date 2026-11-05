@@ -3,7 +3,7 @@
 > 一个**能证明自己没变坏**的企业制度问答系统。
 > 每条答案带可核验出处，答不出就明确拒答，改动发布前必须过评测门禁。
 
-**当前进度：M6b 完成**（Vue3 三页：登录 / 问答 / 文档；文档页可列、可上传、可删除，写操作只给 hr/admin）。
+**当前进度：M7 完成** —— `docker compose up -d` 起全套（web / api / ai / mysql / redis），公网经 Cloudflare Tunnel 可达。
 
 ---
 
@@ -175,6 +175,18 @@ npm run test    → 3 passed（登录存令牌 / 401 清令牌 / ProblemDetail �
 `DocumentsClient.upload()`：前端用 multipart 是 `<input type=file>` 的自然形式，
 不该为了迁就后端把它改成手写字节流；也不该在 Python 侧再实现一套 multipart 解析。
 
+### 部署验证（M7，2026-11-05 实测）
+
+| 检查 | 结果 |
+|---|---|
+| `docker compose ps` | web / api / ai / mysql / redis **全部 healthy** |
+| `GET /`（经 nginx，8088） | 200 |
+| `POST /api/auth/login` | 200，`roles=["hr"]` |
+| `POST /api/chat`（经 nginx → java → ai，真打 DeepSeek） | **4011ms**，`knowledge_hit=true`，1 条引用 |
+| 上传（multipart，经 nginx 20m 限制） | 200，`doc_id=ee14f76815f6`，1 块 |
+| 列表 / 删除 | 1 篇 → `deleted=true` |
+| **公网**（`*.trycloudflare.com`） | 首页 200、登录 200、问答 **4438ms** 命中 1 条 |
+
 ### ACL 隔离（M4 端到端，2026-11-05 实测）
 
 准备：往 `acltest` 分区上传一篇 **`acl=hr`** 的文档（「一线城市出差住宿补贴上限 800 元」），
@@ -209,7 +221,59 @@ npm run test    → 3 passed（登录存令牌 / 401 清令牌 / ProblemDetail �
 | M5 | 配额（每日 N 次，可换 Redis）+ 审计落库/查询 | ✅ |
 | M6a | Vue3 前端：登录 + 问答（Vite 代理直连 Java） | ✅ |
 | M6b | 文档页：列表 / 上传 / 删除（写操作只给 hr、admin） | ✅ |
-| M7 | 部署（Compose + Nginx + Tunnel） | ⬜ |
+| M7 | 部署：compose 五容器 + nginx 同源反代 + Cloudflare Tunnel | ✅ |
+
+---
+
+## 部署（本机 + Tunnel）
+
+**要求：两个仓库并排克隆** —— `policy-desk`（业务 + 前端）与 `_review_rag-cs`（算法）。
+compose 里 ai 服务的 build context 是 `../../_review_rag-cs`。这是"业务仓库 + 算法仓库"的常态，
+但只拿到一个 repo 的人会懵，所以写在这里。
+
+```powershell
+cd D:\policy-desk\deploy
+copy .env.example .env        # 然后填 5 个值（见下）
+mvn -f ../apps/api/pom.xml package -DskipTests    # 镜像里 COPY jar，所以先构建
+docker compose up -d --build
+docker compose ps             # 五个服务都 healthy
+# 浏览器：http://localhost:8088
+```
+
+`.env` 里必须有：`DB_PASSWORD`、`MYSQL_ROOT_PASSWORD`、`INTERNAL_TOKEN`、
+`JWT_SECRET`（>=32 字节）、`DEEPSEEK_API_KEY`（生成用，缺了问答会 500 —— 刻意的）。
+
+### 拓扑
+
+```text
+公网 ──Cloudflare Tunnel──▶ web(nginx:80, 宿主 8088)
+                              ├── /            → 静态文件（dist）
+                              └── /api/*       → api:8081 ──▶ ai:8000
+                                                                └──▶ DeepSeek（外部）
+                              mysql / redis 只在内部网络，不映射端口
+```
+
+★ **只暴露 8088 一个端口**。把带数据库的机器暴露到公网，是这类项目最不可原谅的事故。
+
+### 三个已踩过的坑（都写进配置了）
+
+1. **8080 被 WSL 的 `wslrelay` 占着** → compose 直接报 `port is already allocated`。
+   默认端口改成 **8088**，并用 `${WEB_PORT:-8088}` 允许覆盖。
+2. **nginx 默认 `client_max_body_size 1m`** → 上传制度 PDF 会 413，且错误页是 nginx 的 HTML，
+   前端拿不到 `detail`。已和 Java 的 `multipart.max-file-size: 20MB` 对齐。
+3. **`init.sql` 只在数据卷为空时执行**（`/docker-entrypoint-initdb.d` 的语义）。
+   改了 DDL 不生效时，要么手动迁移，要么 `docker compose down -v` 重来 ——
+   后者会清空业务数据，先想清楚。
+
+### 公网链接的定位（重要）
+
+```text
+Cloudflare quick tunnel 给的 URL 每次重启都变，也没有 uptime 保证。
+⇒ 它适合"面试时现场演示"，不适合当简历上那条链接。
+⇒ 想固定：买一个域名（约 ¥50/年）+ cloudflared named tunnel，仍然跑这台机器。
+   不想让机器常开，才需要 VPS（约 ¥40/月）。
+★ 不会失效的"链接"是：仓库 + 一条 docker compose up + 一段 3 分钟录屏。
+```
 
 ### 配额与审计（M5）
 
