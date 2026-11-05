@@ -1,0 +1,101 @@
+# 持续集成：Java 测试 + 前端构建与测试 + 部署清单校验
+#
+# ★ 为什么这个文件是最该先做的事（不是"工程洁癖"）：
+#   简历上写"63 条测试"时，没有 CI 徽章、没有可点仓库，这句自述**与编造不可区分**。
+#   CI 的价值不是"帮你跑测试"，是给"我说的话"盖一个第三方可点开的章。
+#
+# ★ 三个 job 都只依赖公开 runner，不需要任何 secret：
+#   Java 测试用 H2 内存库（不连 MySQL），前端测试不联网，compose 只做静态校验。
+#   需要 secret 的 e2e（真打 DeepSeek）刻意**不进 CI** —— 一是没意义（不是判据），
+#   二是会把一个 API key 放进别人的日志里。
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# 同一个分支连续推送时，取消上一次未跑完的（省 runner，也避免"旧结果盖新结果"）
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  java:
+    name: java (Spring Boot)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # -B 非交互；-ntp 只打必要行（否则下载日志刷屏，真正的失败被埋掉）
+      - name: Test
+        run: mvn -B -ntp -f apps/api/pom.xml test
+
+      # 失败时把 surefire 报告带出来：日志里只有一行 "Tests run: ... Failures: 1"，
+      # 具体哪个断言挂了要看报告文件。
+      - name: Upload test reports (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: apps/api/target/surefire-reports/
+          retention-days: 7
+
+  web:
+    name: web (Vue 3 + TS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          # ★ 必须指到子目录的 lock 文件：默认是仓库根的 package-lock.json，
+          #   而本仓库的前端在 apps/web 下 —— 指错的话缓存永远不命中（无声地慢）。
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      # build 里含 `vue-tsc --noEmit`：类型错误会让构建失败，这正是我们要的
+      - name: Build (type-check)
+        run: npm run build
+
+      - name: Test
+        run: npm run test
+
+  deploy:
+    name: deploy manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ★ 只做**静态**校验：解析 compose 文件与变量替换，不起容器。
+      #   它能抓住"变量名写错/文件丢了/yaml 语法坏"这类问题，
+      #   而这些问题在部署当天才发现的代价，比在这里发现高一个量级。
+      - name: Validate docker-compose
+        run: docker compose -f deploy/docker-compose.yml --env-file deploy/.env.example config -q
+
+      - name: Validate nginx config
+        run: |
+          # ★ nginx 在**加载配置时**就要解析 upstream 主机名，而 `api` 只在 compose 网络里存在。
+          #   直接 `nginx -t` 会报 "host not found in upstream \"api\""——这不是配置写错了，
+          #   是校验环境缺网络。给一个假的 hosts 映射即可（--add-host），
+          #   这样它校验的是**语法与结构**，而不是服务可不可达。
+          docker run --rm --add-host api:127.0.0.1 \
+            -v "$PWD/deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
+            nginx:1.27-alpine nginx -t
