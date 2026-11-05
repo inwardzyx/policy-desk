@@ -23,3 +23,6 @@ dist/
 # dev.ps1 的日志与 PID
 _run/
 deploy/.env
+
+# 评审工具产物（zcode 盲审留下）
+.mimosa/
