@@ -273,6 +273,8 @@ Cloudflare quick tunnel 给的 URL 每次重启都变，也没有 uptime 保证�
 ⇒ 想固定：买一个域名（约 ¥50/年）+ cloudflared named tunnel，仍然跑这台机器。
    不想让机器常开，才需要 VPS（约 ¥40/月）。
 ★ 不会失效的"链接"是：仓库 + 一条 docker compose up + 一段 3 分钟录屏。
+录像怎么拍（逐字旁白、三句已实测的演示问题、翻车预案）见 [docs/demo-script.md](docs/demo-script.md)，
+语料准备用 `scripts/demo-seed.ps1`。
 ```
 
 ### 配额与审计（M5）
