@@ -19,3 +19,6 @@ application-local.yml
 node_modules/
 dist/
 *.local
+
+# dev.ps1 的日志与 PID
+_run/
