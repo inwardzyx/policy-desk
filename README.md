@@ -3,7 +3,7 @@
 > 一个**能证明自己没变坏**的企业制度问答系统。
 > 每条答案带可核验出处，答不出就明确拒答，改动发布前必须过评测门禁。
 
-**当前进度：M6a 完成**（Vue3 前端：登录 + 问答两页，经 Vite 代理直连 Java；文档页待补）。
+**当前进度：M6b 完成**（Vue3 三页：登录 / 问答 / 文档；文档页可列、可上传、可删除，写操作只给 hr/admin）。
 
 ---
 
@@ -155,6 +155,26 @@ npm run test    → 3 passed（登录存令牌 / 401 清令牌 / ProblemDetail �
 ★ 前端**不引 UI 组件库**：两个页面用不到，引一个要多 200KB 且要处理按需引入。
 等文档页上来再评估。
 
+### 文档页（M6b，2026-11-05 实测）
+
+权限分两档：**看**任何登录用户；**写**（上传/删除）只有 `hr` / `admin`。
+★ 内部口令是**服务身份**，它证明"请求来自 Java"，不证明"这个人是 hr"——两者混用，
+任何登录用户都能写库。
+
+| 步骤 | 结果 |
+|---|---|
+| hr 列 `company` | 1 篇：`ac27eba2b698 企业规章制度（50条） acl=public` |
+| hr 上传（multipart，`acl=hr`，到 `m6btest`） | 200，`doc_id=a7338679b66c`，该分区 1 块 |
+| 再列 `m6btest` | 出现该文档，`acl=hr`、`tombstone=false` |
+| **employee 上传** | **403** `只有 hr / admin 能上传或删除文档` |
+| 未登录访问 `/api/docs` | **401** `未认证` |
+| hr 删除 | `deleted=true` |
+| 删除后再列 | 0 篇 |
+
+★ Java 侧的是 multipart，Python 侧吃的是 **raw body + query 参数**，转换发生在
+`DocumentsClient.upload()`：前端用 multipart 是 `<input type=file>` 的自然形式，
+不该为了迁就后端把它改成手写字节流；也不该在 Python 侧再实现一套 multipart 解析。
+
 ### ACL 隔离（M4 端到端，2026-11-05 实测）
 
 准备：往 `acltest` 分区上传一篇 **`acl=hr`** 的文档（「一线城市出差住宿补贴上限 800 元」），
@@ -188,7 +208,7 @@ npm run test    → 3 passed（登录存令牌 / 401 清令牌 / ProblemDetail �
 | M4 | 角色 → ACL 投影（端到端验证：同一问题，hr 看得到、employee 看不到） | ✅ |
 | M5 | 配额（每日 N 次，可换 Redis）+ 审计落库/查询 | ✅ |
 | M6a | Vue3 前端：登录 + 问答（Vite 代理直连 Java） | ✅ |
-| M6b | 文档页（需要 v1 补一个 `/internal/kb/{ns}/documents` GET） | ⬜ |
+| M6b | 文档页：列表 / 上传 / 删除（写操作只给 hr、admin） | ✅ |
 | M7 | 部署（Compose + Nginx + Tunnel） | ⬜ |
 
 ### 配额与审计（M5）

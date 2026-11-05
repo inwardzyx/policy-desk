@@ -217,3 +217,80 @@ button[type='submit']:disabled {
   padding: 8px 10px;
   border-radius: 0 6px 6px 0;
 }
+
+/* ---------------------------------------------------------------- 文档页 */
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+label.inline {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+}
+
+label.inline input {
+  width: 160px;
+  margin: 0;
+}
+
+select {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  background: #fff;
+}
+
+table.docs {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+table.docs th,
+table.docs td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+table.docs th {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+h2 {
+  font-size: 15px;
+  margin: 22px 0 10px;
+}
+
+.upload {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ghost {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.notice {
+  color: var(--ok);
+  font-size: 13px;
+}
+
+.link.danger {
+  color: #b91c1c;
+}

@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -102,5 +103,19 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .header("Retry-After", String.valueOf(seconds))
                 .body(pd);
+    }
+
+    /**
+     * 控制器里 `throw new ResponseStatusException(...)` 的那些（比如"只有 hr/admin 能上传"）。
+     *
+     * <p>★ 不做这个映射时，Spring 会返回它自己的 `{timestamp,status,error,path}` 结构，
+     * **没有 detail 字段** —— 前端读不到原因，只能显示"请求失败（403）"。
+     * 于是"你没权限"变成了一句无信息的话，而这正是最该说清的一类错误。
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ProblemDetail onResponseStatus(ResponseStatusException e) {
+        ProblemDetail pd = ProblemDetail.forStatus(e.getStatusCode());
+        pd.setDetail(e.getReason());
+        return pd;
     }
 }

@@ -62,7 +62,11 @@ export function setToken(token: string | null): void {
  */
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers)
-  headers.set('Content-Type', 'application/json')
+  // ★ 只有 JSON 才设 Content-Type。multipart 必须让浏览器自己设 ——
+  //   它要在里面写 boundary，手写一个 Content-Type 会把 boundary 丢掉，后端解不出来。
+  if (!(init.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json')
+  }
   const token = getToken()
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
@@ -107,5 +111,44 @@ export function ask(question: string, namespace?: string): Promise<ChatResult> {
   return request<ChatResult>('/api/chat', {
     method: 'POST',
     body: JSON.stringify({ question, namespace: namespace || null }),
+  })
+}
+
+// ---------------------------------------------------------------- 文档
+
+export interface Doc {
+  doc_id: string
+  title?: string | null
+  version?: string | null
+  acl?: string[]
+  updated_at?: string | null
+  status?: string | null
+  tombstone?: boolean
+}
+
+export interface DocList {
+  namespace: string
+  documents: Doc[]
+}
+
+export function listDocs(namespace: string): Promise<DocList> {
+  return request<DocList>(`/api/docs?namespace=${encodeURIComponent(namespace)}`)
+}
+
+export function uploadDoc(
+  file: File,
+  namespace: string,
+  acl: string,
+): Promise<{ document: Doc; namespace_chunks: number }> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('namespace', namespace)
+  form.append('acl', acl)
+  return request('/api/docs', { method: 'POST', body: form })
+}
+
+export function deleteDoc(namespace: string, docId: string): Promise<{ deleted: boolean }> {
+  return request(`/api/docs/${encodeURIComponent(namespace)}/${encodeURIComponent(docId)}`, {
+    method: 'DELETE',
   })
 }

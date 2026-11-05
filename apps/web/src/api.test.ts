@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, ask, getToken, login, setToken } from './api'
+import { ApiError, ask, getToken, login, setToken, uploadDoc } from './api'
 
 /**
  * 判据都对着"最容易出错的三个地方"：
@@ -76,5 +76,27 @@ describe('api', () => {
     )
 
     await expect(ask('q')).rejects.toThrowError('今日配额已用尽（13/12）')
+  })
+
+  it('上传走 multipart 时**不**手写 Content-Type（否则 boundary 丢了、后端解不出来）', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ document: { doc_id: 'd1' }, namespace_chunks: 1 }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+    vi.stubGlobal('fetch', fetchMock)
+    setToken('t-1')
+
+    const file = new File(['## Q\n答'], 'a.md', { type: 'text/markdown' })
+    await uploadDoc(file, 'company', 'hr')
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const headers = init.headers as Headers
+    expect(headers.get('Content-Type')).toBeNull()          // 交给浏览器设
+    expect(headers.get('Authorization')).toBe('Bearer t-1')
+    expect(init.body).toBeInstanceOf(FormData)
   })
 })

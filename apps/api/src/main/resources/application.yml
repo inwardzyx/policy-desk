@@ -5,6 +5,13 @@ server:
 spring:
   application:
     name: policy-desk-api
+  servlet:
+    multipart:
+      # ★ 默认 1MB：企业制度 PDF 很容易超过，超了会报 MaxUploadSizeExceeded 而错误信息
+      #   只说"上传失败"，看不出是大小限制。这里给到 20MB，并和 nginx 的
+      #   client_max_body_size 保持一致（部署时两处都要改，别只改一处）。
+      max-file-size: 20MB
+      max-request-size: 25MB
   datasource:
     # ★ 时区显式写成 Asia/Shanghai：不写的话 JDBC 会按 JVM 默认时区换算，
     #   容器里（UTC）与本地（+08）算出来的"今天"差 8 小时，配额与审计都会错位。

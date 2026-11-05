@@ -33,6 +33,7 @@ const onLoginPage = computed(() => route.name === 'login')
     <nav>
       <template v-if="loggedIn">
         <router-link to="/chat">问答</router-link>
+        <router-link to="/docs">文档</router-link>
         <span class="who">{{ username }}</span>
         <button class="link" @click="logout">退出</button>
       </template>
