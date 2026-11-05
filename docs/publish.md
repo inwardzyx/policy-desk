@@ -32,10 +32,17 @@ git push -u origin main
 
 ★ 推送前确认两件事：
 
-```text
-☐ 没有任何 .env 被提交：  git ls-files | Select-String '\.env'
-☐ 没有密钥字符串：        git grep -n "sk-" -- .        # 应为空
+```powershell
+# ① 有没有真的 .env 被跟踪（.env.example 是模板，不算）
+git ls-files | Select-String '\.env$'
+
+# ② 有没有 API key 形态的字符串
+#    ★ 别用 "sk-" 这种裸关键字：本仓库里 policy-desk-* 全含 "sk-"，会满屏假红。
+#      假红会教人不再看检查 —— 那比没有检查更坏。
+git grep -nE "sk-[A-Za-z0-9]{20,}" -- .
 ```
+
+两条都应该没有输出。
 
 ## 3. 让徽章亮起来（2 分钟）
 
