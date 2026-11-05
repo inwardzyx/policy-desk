@@ -24,13 +24,24 @@ public final class Dto {
     public record Source(String doc, String text, Double score, Integer rerank_score, String reason) {
     }
 
+    /**
+     * Python 的上下文摘要（只取我们真的会用的 trace_id）。
+     *
+     * <p>★ trace_id 是"这次请求在 Python 侧的唯一编号"，审计靠它把两边的记录对上。
+     * 它**只在带 namespace 的请求上存在**，所以可能为 null —— 不补假值。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Context(String trace_id) {
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record ChatResponse(
             String answer,
             List<Source> sources,
             int took_ms,
             boolean rerank_used,
-            boolean knowledge_hit
+            boolean knowledge_hit,
+            Context context
     ) {
     }
 

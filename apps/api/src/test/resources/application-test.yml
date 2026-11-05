@@ -18,6 +18,10 @@ policy-desk:
   seed-demo-users: true
   demo-password: policy123
   demo-roles-header: false
+  quota:
+    # 测试用内存实现：不依赖本机 Redis（"跳过的判据等于没有"）
+    backend: memory
+    daily-limit: 3
 
 python-ai:
   base-url: http://127.0.0.1:9

@@ -1,10 +1,10 @@
 package com.policydesk.api.web;
 
 import com.policydesk.api.client.Dto;
-import com.policydesk.api.client.PythonAiClient;
 import com.policydesk.api.security.AclProjector;
 import com.policydesk.api.security.JwtAuthFilter;
 import com.policydesk.api.security.JwtService;
+import com.policydesk.api.service.ChatService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -19,27 +19,26 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 问答入口。
+ * 问答入口（只做三件事：取身份、算 ACL、交给 {@link ChatService}）。
  *
  * <p>★ 这条链路上"谁能看什么"只经过一处转换：
  * <pre>
  *   JWT 里的 roles ──AclProjector──▶ ACL ──X-Auth-Roles──▶ Python（按块过滤）
  * </pre>
- * 控制器**不自己算 ACL**，也不把 roles 直接透传 —— 否则映射逻辑会散落在每个接口里，
- * 改一处漏一处。
+ * 控制器**不自己算 ACL**，也不把 roles 直接透传 —— 否则映射逻辑会散落在每个接口里。
  */
 @RestController
 @RequestMapping("/api")
 public class ChatController {
 
-    private final PythonAiClient ai;
+    private final ChatService chat;
     private final AclProjector projector;
     private final boolean demoRolesHeader;
 
-    public ChatController(PythonAiClient ai, AclProjector projector,
+    public ChatController(ChatService chat, AclProjector projector,
                           @org.springframework.beans.factory.annotation.Value(
                                   "${policy-desk.demo-roles-header:false}") boolean demoRolesHeader) {
-        this.ai = ai;
+        this.chat = chat;
         this.projector = projector;
         this.demoRolesHeader = demoRolesHeader;
     }
@@ -49,7 +48,9 @@ public class ChatController {
 
     @PostMapping("/chat")
     public Dto.ChatResponse chat(@RequestBody @Valid AskBody body, HttpServletRequest request) {
-        return ai.chat(body.question(), body.namespace(), resolveAcl(request), body.sessionId());
+        JwtService.Principal p = (JwtService.Principal) request.getAttribute(JwtAuthFilter.ATTR_PRINCIPAL);
+        long userId = p != null ? userIdOf(p) : demoUserId();
+        return chat.ask(userId, resolveAcl(request, p), body.question(), body.namespace(), body.sessionId());
     }
 
     /**
@@ -58,8 +59,7 @@ public class ChatController {
      * <p>顺序有讲究：**已认证 > 联调头 > 拒绝**。
      * 若把联调头放前面，一个已登录的 employee 只要多带一个头就能变成 hr。
      */
-    private List<String> resolveAcl(HttpServletRequest request) {
-        JwtService.Principal p = (JwtService.Principal) request.getAttribute(JwtAuthFilter.ATTR_PRINCIPAL);
+    private List<String> resolveAcl(HttpServletRequest request, JwtService.Principal p) {
         if (p != null) {
             return projector.project(p.roles());
         }
@@ -77,5 +77,14 @@ public class ChatController {
         // 而不是让"没带令牌"悄悄等于"public 权限"。
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                 "未认证：请先登录（POST /api/auth/login 拿令牌，再带 Authorization: Bearer ...）");
+    }
+
+    private long userIdOf(JwtService.Principal p) {
+        return p.userId();
+    }
+
+    /** 联调模式下没有登录用户：给一个固定的负数 id，让审计能区分"演示流量"。 */
+    private long demoUserId() {
+        return -1L;
     }
 }

@@ -3,23 +3,33 @@ package com.policydesk.api.web;
 import com.policydesk.api.client.PythonAiClient;
 import com.policydesk.api.security.AclProjector;
 import com.policydesk.api.service.AuthService;
+import com.policydesk.api.service.ChatService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.ResourceAccessException;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 /**
- * 把"上游出事"翻成可判断的状态码。
+ * 把各种失败翻译成**可判断**的状态码。
  *
- * <p>为什么要单独区分 502 / 504：
- * <ul>
- *   <li><b>502</b> —— AI 服务活着但答了个错（4xx/5xx）。改契约或改配置。</li>
- *   <li><b>504</b> —— 等不到回应（连接/读超时）。改超时或查对方是否卡住。</li>
- * </ul>
- * 两种故障的处置动作完全不同，合并成一个 500 就是让人从日志里猜。
+ * <p>一张表：
+ * <pre>
+ *   401  未认证 / 令牌无效 / 登录失败
+ *   403  角色没登记 ACL 映射（身份为真、权限未定义）
+ *   429  今日配额用尽（带 Retry-After，指向次日 0 点）
+ *   502  AI 服务答了个错（4xx/5xx）
+ *   504  等不到 AI 服务（连接/读超时）
+ * </pre>
+ * 合并成 500 就等于让人从日志里猜。
  *
  * <p>★ 上游原文只进日志，不进响应体：里面可能有 Python 的栈信息与内网地址。
  */
@@ -27,6 +37,7 @@ import org.springframework.web.client.ResourceAccessException;
 public class ApiExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private static final ZoneId ZONE = ZoneId.of("Asia/Shanghai");
 
     @ExceptionHandler(PythonAiClient.PythonAiException.class)
     public ProblemDetail onUpstreamError(PythonAiClient.PythonAiException e) {
@@ -73,5 +84,23 @@ public class ApiExceptionHandler {
         pd.setTitle("权限未定义");
         pd.setDetail("当前角色没有对应的数据权限，请联系管理员");
         return pd;
+    }
+
+    /**
+     * 配额用尽。
+     *
+     * <p>★ 带 {@code Retry-After}：客户端能据此提示"明天再来"，而不是无脑重试
+     * （重试还会继续消耗计数，因为配额是"先扣再判"）。
+     */
+    @ExceptionHandler(ChatService.QuotaExceeded.class)
+    public ResponseEntity<ProblemDetail> onQuotaExceeded(ChatService.QuotaExceeded e) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.TOO_MANY_REQUESTS);
+        pd.setTitle("今日配额已用尽");
+        pd.setDetail(e.getMessage());
+        long seconds = Math.max(1, Duration.between(LocalDateTime.now(ZONE),
+                LocalDate.now(ZONE).plusDays(1).atStartOfDay()).getSeconds());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(seconds))
+                .body(pd);
     }
 }

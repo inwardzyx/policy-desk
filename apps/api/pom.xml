@@ -60,6 +60,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- 配额：Redis 实现（部署形态）。本地/测试用内存实现，见 QuotaStore 的注释 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
         <!-- 口令哈希：只要 crypto 这一块，不要整个 Spring Security 的过滤器链（见 JwtService 的注释） -->
         <dependency>
             <groupId>org.springframework.security</groupId>

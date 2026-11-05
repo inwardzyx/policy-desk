@@ -12,6 +12,12 @@ spring:
     username: ${DB_USER:policy}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      # ★ 显式 2s：不设的话 Redis 挂住时请求会一直等（表现为"页面白屏、日志无错"）
+      timeout: 2s
 
 mybatis-plus:
   configuration:
@@ -29,6 +35,13 @@ management:
     health:
       # ★ 展开组件：只有展开才能看到 components.pythonAi 与 components.db（否则永远只有一个总 UP）
       show-details: always
+  health:
+    redis:
+      # ★ 默认关闭：本服务只有"配额"用 Redis，而 QuotaStore 默认是 memory 实现。
+      #   开着它会出现一个**假红**：配额走内存、Redis 根本没装，健康检查却因为连不上
+      #   Redis 把整个 /actuator/health 判成 DOWN（实测踩到）。
+      #   ⇒ 只有当 QUOTA_BACKEND=redis 时才把它设为 true，让"健康的含义"和真实依赖一致。
+      enabled: ${REDIS_HEALTH_ENABLED:false}
 
 python-ai:
   base-url: ${PYTHON_AI_URL:http://127.0.0.1:8028}
@@ -48,6 +61,11 @@ policy-desk:
   demo-password: ${DEMO_PASSWORD:}
   # ★ M2 的临时角色头：M3 起默认关。开着时也只对**未认证**请求生效
   demo-roles-header: ${DEMO_ROLES_HEADER:false}
+  quota:
+    # memory = 进程内（重启清零、多实例各算各的，只适合单机演示）；redis = 部署形态。
+    # ★ 没有"自动降级"：选哪个是部署决定，不是运行时猜的。
+    backend: ${QUOTA_BACKEND:memory}
+    daily-limit: ${QUOTA_DAILY_LIMIT:12}
 
 logging:
   level:

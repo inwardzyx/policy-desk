@@ -3,7 +3,7 @@
 > 一个**能证明自己没变坏**的企业制度问答系统。
 > 每条答案带可核验出处，答不出就明确拒答，改动发布前必须过评测门禁。
 
-**当前进度：M4 完成**（登录 → JWT → 角色 → **ACL 投影** → 转给 Python AI 服务）。
+**当前进度：M5 完成**（登录 → JWT → ACL 投影 → **配额** → AI → **审计落库**）。
 
 ---
 
@@ -70,23 +70,52 @@ D:\policy-desk\tools\apache-maven-3.9.9\bin\mvn.cmd -s D:\policy-desk\tools\sett
 
 ## 验证（2026-11-05 实测，非估算）
 
-### Java 侧（H2 内存库，42 条）
+### Java 侧（H2 内存库，57 条）
 
 ```text
-Tests run: 42, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 57, Failures: 0, Errors: 0, Skipped: 0
 ```
 
 | 判据 | 证明什么 |
 |---|---|
 | `AclProjectorTest` 6 条 | 三个角色的映射；多角色取并集；**输出顺序固定**；未知角色/空角色**抛错而不是降级** |
+| `QuotaServiceTest` 3 条 | 限额内放行、超出拒；**被拒那次也计数**；**键里带日期**（跨天自动换计数器） |
+| `RedisQuotaStoreTest` 3 条 | **TTL 只在首次 INCR 时设置**（否则永不过期）；Redis 返回 null 不炸 |
+| `AuditServiceTest` 3 条 | 问题只存 64 位 sha256；同问题同哈希；**写库失败被吞掉**（旁路证据） |
+| `ChatServiceTest` 5 条 | answered/refused 分开记；**配额拒时不调 AI**且记 `quota_denied`；上游错记 `upstream_error` 后继续抛；无 trace 记 null 不补假值 |
 | `JwtServiceTest` 5 条 | 令牌签得出/验得回；**过期拒**；**改一个字符拒**；**换密钥拒**；密钥 <32 字节**构造即失败** |
 | `JwtAuthFilterTest` 4 条 | 无令牌放行但不设身份；**坏令牌 401 且不再往下走**；好令牌写入身份；`/actuator/**` 不过滤 |
-| `AuthServiceTest` 4 条 | 口令对给令牌；**口令错／用户不存在／被禁用返回同一个错误**（不给账号枚举器留口子） |
-| `ChatControllerTest` 9 条 | **发给 AI 的是 ACL 不是角色名**；employee 只拿到 `public`；未知角色 403 **且不调用 AI**；匿名 401 **且不调用 AI**；已认证时 `X-Demo-Roles` 无效；空问题 400；502/504 分开 |
-| `AuthControllerTest` 3 条 | 登录成功给 token；失败两种情形**不可区分**；空输入 400 |
+| `AuthServiceTest` 4 条 | 口令对给令牌；**口令错／用户不存在／被禁用返回同一个错误** |
+| `ChatControllerTest` 10 条 | **传给业务层的是 ACL 不是角色名**；未知角色 403 **且不调用**；匿名 401 **且不调用**；已认证时 `X-Demo-Roles` 无效；配额 429+`Retry-After`；502/504 分开 |
+| `AuthControllerTest` 3 条 | 登录成功给 token；失败不可区分；空输入 400 |
 | `LoginIntegrationTest` 4 条 | 种子账号→登录→`/api/me` 全链路；**健康检查在上游不可用时真的报红** |
 | `PythonAiClientTest` 3 条 | 两个头发对；上游 401 变可判断异常；上游多字段不炸解析 |
 | `PythonAiPropertiesTest` 3 条 | 缺 token/base-url **构造即失败**；超时非正数退回默认 |
+
+### 配额 + 审计（M5 端到端，真 MySQL，2026-11-05）
+
+`QUOTA_DAILY_LIMIT=2`，用 `hr_demo` 连问三次：
+
+| 次数 | 结果 |
+|---|---|
+| 1 | 200，`knowledge_hit=true`，1 条引用 |
+| 2 | 200 |
+| **3** | **429** `今日配额已用尽（3/2）`，`Retry-After: 51557`（距次日 0 点秒数） |
+
+`audit` 表（真 MySQL）：
+
+```text
+id  user_id  hash10       decision       n_blocks  took_ms  trace_id
+1   1        84b03d71d1   answered       1         4029     NULL
+2   1        84b03d71d1   answered       1         1004     NULL
+3   1        84b03d71d1   quota_denied   NULL      NULL     NULL
+4   1        868e97d9c0   quota_denied   NULL      NULL     NULL
+```
+
+- 前两条是同一个问题（哈希相同）→ **能看出"同一问题问了两次"**
+- 后两条 `quota_denied` 也留了痕 → **被刷时看得见**（这正是 M5 要证明的那件事）
+- 带 `namespace` 的请求会把 Python 的 `trace_id` 落库，两边能对上：
+  `context.trace_id = deca72a3acf24c25b5f262792e0f1e5c` ↔ `audit.trace_id = deca72a3acf24c25b5f262792e0f1e5c`
 
 ### ACL 隔离（M4 端到端，2026-11-05 实测）
 
@@ -119,9 +148,24 @@ Tests run: 42, Failures: 0, Errors: 0, Skipped: 0
 | M2 | 骨架 + 调通 Python 内部接口 | ✅ |
 | M3 | users 表 + BCrypt + JWT（`X-Demo-Roles` 已默认关闭） | ✅ |
 | M4 | 角色 → ACL 投影（端到端验证：同一问题，hr 看得到、employee 看不到） | ✅ |
-| M5 | 审计落库 + 查询（含 `decision=quota_denied`） | ⬜ |
+| M5 | 配额（每日 N 次，可换 Redis）+ 审计落库/查询 | ✅ |
 | M6 | Vue 前端：登录 / 问答 / 文档 | ⬜ |
 | M7 | 部署（Compose + Nginx + Tunnel） | ⬜ |
+
+### 配额与审计（M5）
+
+**配额**：每用户每天 `QUOTA_DAILY_LIMIT` 次（默认 12），键 `quota:{userId}:{yyyy-MM-dd}`。
+
+| 存储后端 | 何时用 | 代价 |
+|---|---|---|
+| `memory`（默认） | 测试、单机演示 | 重启清零、多实例各算各的 |
+| `redis`（`QUOTA_BACKEND=redis`） | 部署形态 | 需要真 Redis；TTL 跨天自动过期 |
+
+★ **先扣再判**：被拒的那次也占用计数，否则用户可以在超额后无限重试、每次都是"第 N+1 次"。
+★ 配额在 Java 侧判定，**超额请求根本不会打到 Python**，也就不烧 token。
+
+**审计**：每次问答落一行 `audit`，`decision` 取 `answered / refused / quota_denied / upstream_error`。
+问题**只存 sha256**（能比对频次，还原不出原文），不存答案正文，`trace_id` 与 Python 侧对齐。
 
 ### 角色 → ACL（唯一映射点：`AclProjector`）
 
