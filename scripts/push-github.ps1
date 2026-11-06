@@ -113,26 +113,48 @@ Write-Host "  [信息] 分支 $branch，提交数 $((git rev-list --count HEAD))
 # ---------------------------------------------------------------- ⑤ 推送
 Write-Host '== 推送 ==' -ForegroundColor Cyan
 # ★ git push 会把进度写到 stderr；在 5.1 + ErrorActionPreference=Stop 下那会被当成
-#   终止性错误。这里临时放行，改用退出码判定。
-$ErrorActionPreference = 'Continue'
-git push -u origin $branch
+#   终止性错误。这里临时放行，并把输出**收下来**——因为失败有三种完全不同的原因，
+#   不区分就会给出错误的下一步动作（这条是被真实误诊逼出来的：
+#   本地 pre-push 钩子拦下了推送，而脚本却让人去 GitHub 建仓库）。
+# ★ 通过 cmd /c 把 git 的 stderr 并进 stdout 再收下来。三条路都试过，只有这条同时满足
+#   "不炸、不丢、能分类"：
+#     · `git push 2>&1` + Continue：PowerShell 会记 NativeCommandError 并**打印**
+#       CategoryInfo / FullyQualifiedErrorId（一片红，看着像脚本崩了）；
+#     · `$ErrorActionPreference='SilentlyContinue'`：连内容一起丢掉 ——
+#       实测 $pushOut 变成空串，于是分类分支全失效、永远落到"未分类"；
+#     · 走 cmd 这一层：stderr 就是普通文本，既不炸也不丢。
+$pushOut = (cmd /c "git push -u origin $branch 2>&1" | Out-String)
 $pushCode = $LASTEXITCODE
-$ErrorActionPreference = 'Stop'
+if ($pushOut.Trim()) { Write-Host $pushOut.TrimEnd() -ForegroundColor DarkGray }
+
 if ($pushCode -ne 0) {
     Pop-Location
+    Write-Host ''
     # ★ 用 Write-Host + exit 而不是 throw：throw 会把整段消息当成异常记录打印出来
     #   （一片红 + CategoryInfo + FullyQualifiedErrorId），看起来像脚本崩了。
     #   实际上这是**可预期的用户操作缺失**，该给的是下一步动作，不是堆栈。
-    Write-Host ''
-    Write-Host '推送失败：远端仓库还不存在，或者没有权限。' -ForegroundColor Red
-    Write-Host ''
-    Write-Host "  1) 建仓库：https://github.com/new  名字填 $Repo"
-    Write-Host '     可见性选 Public，**不要**勾 "Add a README file"（本地已经有了）'
-    Write-Host '  2) 建好后再跑一次本脚本'
-    Write-Host ''
-    Write-Host '  如果仓库其实已经建好了，那就是认证问题：' -ForegroundColor Yellow
-    Write-Host '     HTTPS 推送要用 Personal Access Token 当口令，不是 GitHub 登录密码。'
-    Write-Host '     生成：https://github.com/settings/tokens → Generate new token (classic) → 勾 repo'
+    if ($pushOut -match 'pre-push') {
+        Write-Host '推送被**本地 pre-push 钩子**拦下了 —— 不是 GitHub 的问题，代码也没推出去。' -ForegroundColor Red
+        Write-Host ''
+        Write-Host '  先在本机手动跑一遍钩子，看是哪条检查红（任选其一）：'
+        Write-Host '    bash scripts/hooks/pre-push'
+        Write-Host '    pwsh -File scripts/hooks/pre-push   （若已装 PowerShell 7）'
+        Write-Host ''
+        Write-Host '  修好那条检查再推。★ 不建议用 git push --no-verify 绕过：'
+        Write-Host '    这道钩子挡住过真实的密钥泄漏与"坏环境跑出来的假基线"。'
+        exit 1
+    }
+    if ($pushOut -match 'Repository not found|does not appear to be a git repository') {
+        Write-Host '推送失败：远端仓库还不存在（或没有权限）。' -ForegroundColor Red
+        Write-Host ''
+        Write-Host "  1) 建仓库：https://github.com/new  名字填 $Repo"
+        Write-Host '     可见性选 Public，**不要**勾 "Add a README file"（本地已经有了）'
+        Write-Host '  2) 建好后再跑一次本脚本'
+        exit 1
+    }
+    Write-Host '推送失败，原因不在上面两类，看上面 git 的原始输出。' -ForegroundColor Red
+    Write-Host '  常见：认证（HTTPS 要用 Personal Access Token 当口令，不是登录密码）'
+    Write-Host '        网络（代理/防火墙）、或远端有本地没有的提交（先 git pull --rebase）'
     exit 1
 }
 
