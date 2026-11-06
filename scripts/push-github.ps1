@@ -120,11 +120,20 @@ $pushCode = $LASTEXITCODE
 $ErrorActionPreference = 'Stop'
 if ($pushCode -ne 0) {
     Pop-Location
-    throw @'
-推送失败。最常见的原因是**远端仓库还不存在**：
-  打开 https://github.com/new 建一个名为 <Repo> 的仓库（Public，不要勾 Add a README）
-然后再跑一次本脚本。
-'@
+    # ★ 用 Write-Host + exit 而不是 throw：throw 会把整段消息当成异常记录打印出来
+    #   （一片红 + CategoryInfo + FullyQualifiedErrorId），看起来像脚本崩了。
+    #   实际上这是**可预期的用户操作缺失**，该给的是下一步动作，不是堆栈。
+    Write-Host ''
+    Write-Host '推送失败：远端仓库还不存在，或者没有权限。' -ForegroundColor Red
+    Write-Host ''
+    Write-Host "  1) 建仓库：https://github.com/new  名字填 $Repo"
+    Write-Host '     可见性选 Public，**不要**勾 "Add a README file"（本地已经有了）'
+    Write-Host '  2) 建好后再跑一次本脚本'
+    Write-Host ''
+    Write-Host '  如果仓库其实已经建好了，那就是认证问题：' -ForegroundColor Yellow
+    Write-Host '     HTTPS 推送要用 Personal Access Token 当口令，不是 GitHub 登录密码。'
+    Write-Host '     生成：https://github.com/settings/tokens → Generate new token (classic) → 勾 repo'
+    exit 1
 }
 
 Pop-Location
