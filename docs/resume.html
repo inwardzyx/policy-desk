@@ -4,8 +4,7 @@
 <meta charset="utf-8" />
 <title>周语昕 · 简历</title>
 <style>
-  /* ★ A4 + 固定边距：打印时浏览器不会自作主张缩放（缩放是简历排版最常见的翻车原因） */
-  @page { size: A4; margin: 11mm 12mm; }
+  @page { size: A4; margin: 12mm 13mm; }
 
   :root {
     --ink: #1a1a1a;
@@ -19,43 +18,28 @@
   body {
     margin: 0;
     color: var(--ink);
-    /* 简历只用系统字体：手机上也不会因为缺字体而崩排版 */
     font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
-    font-size: 9.6pt;
-    line-height: 1.38;
+    font-size: 9.9pt;
+    line-height: 1.45;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  h1 {
-    font-size: 20pt;
-    margin: 0 0 2mm;
-    letter-spacing: 1px;
-  }
+  h1 { font-size: 19pt; margin: 0 0 1.5mm; letter-spacing: 1px; }
 
-  .head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 8mm;
-  }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
 
   .intent {
-    font-size: 10.6pt;
+    font-size: 10.4pt;
     font-weight: 600;
     color: var(--accent);
-    margin-bottom: 1.5mm;
+    margin-bottom: 1.2mm;
   }
 
-  .contact {
-    font-size: 9.4pt;
-    color: var(--muted);
-    line-height: 1.7;
-  }
+  .contact { font-size: 9.2pt; color: var(--muted); line-height: 1.65; }
 
   .photo {
-    width: 24mm;
-    height: 32mm;
+    width: 23mm; height: 31mm;
     border: 1px solid var(--line);
     border-radius: 2px;
     object-fit: cover;
@@ -63,70 +47,40 @@
   }
 
   h2 {
-    font-size: 11pt;
-    margin: 4.5mm 0 1.8mm;
-    padding-bottom: 1mm;
+    font-size: 10.8pt;
+    margin: 4mm 0 1.6mm;
+    padding-bottom: 0.9mm;
     border-bottom: 1.2px solid var(--accent);
     color: var(--accent);
   }
 
   h3 {
-    font-size: 10.4pt;
-    margin: 3mm 0 0.8mm;
+    font-size: 10.2pt;
+    margin: 2.4mm 0 0.7mm;
     display: flex;
     justify-content: space-between;
     gap: 4mm;
   }
 
-  h3 .when {
-    font-weight: 400;
-    color: var(--muted);
-    font-size: 9.4pt;
-    white-space: nowrap;
-  }
+  h3 .when { font-weight: 400; color: var(--muted); font-size: 9.2pt; white-space: nowrap; }
 
-  .stack {
-    font-size: 9.2pt;
-    color: var(--muted);
-    margin: 0 0 1.2mm;
-  }
+  .stack { font-size: 9pt; color: var(--muted); margin: 0 0 1mm; }
 
-  ul {
-    margin: 0 0 1mm;
-    padding-left: 4.6mm;
-  }
+  .summary { margin: 0 0 1.2mm; }
 
-  li {
-    margin-bottom: 1.1mm;
-  }
-
+  ul { margin: 0 0 0.8mm; padding-left: 4.4mm; }
+  li { margin-bottom: 1mm; }
   li::marker { color: var(--accent); }
 
   b { font-weight: 600; }
-
   .kw { color: var(--accent); font-weight: 600; }
 
-  .skills {
-    display: grid;
-    grid-template-columns: 17mm 1fr;
-    gap: 1mm 3mm;
-    font-size: 9.8pt;
-  }
+  .skills { display: grid; grid-template-columns: 16mm 1fr; gap: 0.9mm 3mm; font-size: 9.6pt; }
+  .skills .k { color: var(--accent); font-weight: 600; }
 
-  .skills .k {
-    color: var(--accent);
-    font-weight: 600;
-  }
+  .edu { display: flex; justify-content: space-between; font-size: 9.8pt; }
+  .edu .when { color: var(--muted); font-size: 9.2pt; }
 
-  .edu {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10pt;
-  }
-
-  .edu .when { color: var(--muted); font-size: 9.4pt; }
-
-  /* 一页纸：打印时禁止孤行 */
   li, h3 { break-inside: avoid; }
 </style>
 </head>
@@ -138,13 +92,13 @@
     <div class="intent">求职意向：AI 应用开发 / 全栈开发（实习）</div>
     <div class="contact">
       13022069636 ／ zyx167167@qq.com<br />
-      GitHub：github.com/inwardzyx<br />
+      GitHub：github.com/inwardzyx（policy-desk：业务 + 前端；campus-policy-rag：算法层）<br />
       可实习：<b>1 月 15 日起，每周 4–5 天，可连续 4–6 个月</b>
     </div>
   </div>
   <!--
-    ★ 照片位默认关闭：没有 photo.jpg 时 <img> 会渲染成一个裂图/空框，比没有更难看。
-      需要照片就：把照片存成与本文件同目录的 photo.jpg，然后取消下面这行的注释。
+    ★ 照片位默认关闭：没有 photo.jpg 时 <img> 会印成空框，比没有更难看。
+      要照片：存成同目录 photo.jpg，再取消下面这行注释。
     <img class="photo" src="photo.jpg" alt="" />
   -->
 </div>
@@ -161,7 +115,7 @@
   <div>MySQL 8（建表 / 索引 / 时区）、Redis（原子计数 + 按天 TTL）</div>
 
   <div class="k">AI 工程</div>
-  <div>RAG（向量 + BM25 + RRF）、LLM 精排与生成、拒答策略、评测集与配对显著性检验、MCP</div>
+  <div>RAG（向量 + BM25 + RRF）、LLM 精排与生成、拒答策略、评测集与配对显著性检验、MCP（手写 JSON-RPC）</div>
 
   <div class="k">工程化</div>
   <div>Docker Compose 多容器编排、Nginx 反代、GitHub Actions、pytest / JUnit / Vitest</div>
@@ -169,39 +123,29 @@
 
 <h2>项目经历</h2>
 
-<h3>制度问答台 —— 三层架构的企业问答系统<span class="when">个人项目 · 2026.10 – 2026.11</span></h3>
-<div class="stack">Vue 3 + TypeScript + Vite ｜ Spring Boot 3 + MyBatis-Plus ｜ MySQL / Redis ｜ Docker Compose + Nginx ｜ 对接 Python 算法服务</div>
+<h3>制度问答台 —— 分层架构的企业问答系统<span class="when">个人项目 · 2026.09 – 2026.11</span></h3>
+<div class="stack">Vue 3 + TS + Vite ｜ Spring Boot 3 + MyBatis-Plus ｜ MySQL / Redis ｜ Python + FastAPI + bge-small-zh / BM25 / RRF / DeepSeek ｜ Docker Compose + Nginx</div>
+<div class="summary">
+  把 10 份校级制度做成「答案带条款出处、库里没有就当场拒答」的问答系统，
+  并按<span class="kw">「谁在问、能问什么、问了多少次」</span>拆成业务层与无状态算法层，两层各自可独立测试与替换。
+</div>
 <ul>
-  <li><b>分层设计</b>：按「谁在问、能问什么、问了多少次」切成三层 —— 前端 → Java 业务层（用户 / 角色 / 配额 / 审计）→
-    无状态的算法服务（检索 / 精排 / 生成）。<span class="kw">配额在调用模型之前判定</span>，超额请求不产生任何 token 费用。</li>
+  <li><b>分层与配额</b>：前端 → Java 业务层（用户 / 角色 / 配额 / 审计）→ 算法层（检索 / 精排 / 生成）。
+    <span class="kw">配额在调用模型之前判定</span>，超额请求零 token 消耗（429 + <code>Retry-After</code>）；
+    实测问答端到端 ≈ <b>4.0 s</b>，检索 p50 <b>3.1 ms</b> / p95 <b>7.6 ms</b>（含向量编码，n=240）。</li>
   <li><b>权限（核心）</b>：角色 → ACL <span class="kw">单向投影</span>（employee → public；hr → hr, public；未登记角色 403 不降级），
-    身份只解析一次，下游只认 ACL 不认角色。实测同一问题：<b>hr 命中「加班与补贴」并带原文引用，employee 明确拒答</b>；
+    身份只解析一次、下游只认 ACL。实测同一问题：<b>hr 命中「加班与补贴」并带原文引用，employee 明确拒答</b>；
     而 employee 问「年假」可正常回答 —— 差别只来自令牌里的角色。</li>
-  <li><b>配额与审计</b>：Redis <code>INCR</code> + 按天 <code>TTL</code> 实现每人每日额度，超限返回 429 + <code>Retry-After</code>；
-    每次问答落库，问题<b>只存 SHA-256</b>（可比对频次、还原不出原文），记录 answered / refused / quota_denied / upstream_error 四类决策，
-    <code>trace_id</code> 与算法服务对齐。</li>
-  <li><b>可靠性与安全</b>：未配内部口令或认证模式为 none 时接口直接 503（fail-closed）；JWT 密钥 &lt; 32 字节启动即失败；
-    健康检查把上游 AI 服务纳入（AI 不可用时整体 DOWN，实测 503）。</li>
-  <li><b>质量与交付</b>：<b>63 条后端测试</b>（H2 内存库，不依赖本机 MySQL）+ <b>4 条前端测试</b> + GitHub Actions 三 job；
-    Compose 编排 web / api / ai / mysql / redis 五容器（全 healthy），Nginx 上传上限与后端 20MB 对齐；
-    公网经 Tunnel 可访问，问答端到端 ≈ 4.0 s。</li>
-</ul>
-
-<h3>校园政策问答 RAG 服务<span class="when">个人项目 · 2026.09 – 2026.10</span></h3>
-<div class="stack">Python + FastAPI + bge-small-zh（向量）+ jieba/BM25 + RRF + DeepSeek（精排 / 生成）+ Redis + Docker Compose</div>
-<ul>
-  <li><b>服务与性能</b>：独立完成的 LLM 问答服务，把 10 份校级制度做成「答案带条款出处、库里没有就当场拒答」的检索问答；
-    FastAPI 多端点（/chat、/chat/stream SSE、/search、/health、/limits、/guard-report），compose 一条命令起；
-    检索端到端 <b>p50 3.1 ms / p95 7.6 ms</b>（含向量编码，n=240），单题 2–3 次模型调用约 <b>946 token</b>。</li>
-  <li><b>工具层</b>：自写 <b>MCP server / client</b>（手写 JSON-RPC over stdio，不依赖官方 SDK），把 <code>search_policy</code>
-    从借道 <code>/chat</code> 改到 <code>/search</code>；配对 A/B 证明<b>渲染文本逐字节一致（20/20）</b>、每次省 ≈ <b>366 token</b>。</li>
   <li><b>入库把关</b>：286 块原始材料 → <b>放行 263 / 拦下 23</b>，每条理由可在 <code>/guard-report</code> 逐条查；
     近似重复阈值 <b>0.96 是量出来的</b>（最像的一对合法条款 0.9230、该拦的同义改写 0.9839，两簇之间是空的）。</li>
-  <li><b>拒答与评测</b>：精排最高分 &lt; 5 直接返回「我不编」、不调用生成模型；精排挂掉时降级走粗捞并标
-    <code>rerank_used=false</code>。双评测集（调参集 + <b>105 题盲出独立集</b>）：Recall@5 <b>44/44</b>、漏答率 <b>4/44 → 1/44</b>
-    （exact McNemar <b>p = 0.0156</b>）；另有三条「看起来更好」的改法被同一门禁在 39 题上同时否决。</li>
-  <li><b>故障可见性</b>：<code>/health</code> 报四类故障计数（拒绝 / 配额 / 存储错误 / 记账缺口 usage_missing）+ 存储后端；
-    拿不到 usage 记「缺失」<b>不补 0</b> —— 这个计数器发现了流式记账的静默丢失。</li>
+  <li><b>不编造</b>：精排最高分 &lt; 5 直接返回「我不编」、不调用生成模型；精排挂掉时降级走粗捞并标
+    <code>rerank_used=false</code>，<b>故障不伪装成「库里没有」</b>。</li>
+  <li><b>评测</b>：双评测集（调参集 + <b>105 题盲出独立集</b>，与调参集零重合）；
+    Recall@5 <b>44/44</b>、漏答率 <b>4/44 → 1/44</b>（exact McNemar <b>p = 0.0156</b>）；
+    另有三条「看起来更好」的改法被同一门禁在 39 题上同时否决、全部不动。</li>
+  <li><b>工具与交付</b>：自写 <b>MCP server / client</b>（手写 JSON-RPC over stdio，不依赖官方 SDK），
+    把 <code>search_policy</code> 从借道 <code>/chat</code> 改到 <code>/search</code>，配对 A/B 证明渲染文本<b>逐字节一致</b>、每次省 ≈ <b>366 token</b>；
+    <b>63 条后端测试</b> + <b>4 条前端测试</b> + GitHub Actions 三 job；Compose 编排五容器、Nginx 反代、公网 Tunnel 可达。</li>
 </ul>
 
 <h2>教育背景</h2>
