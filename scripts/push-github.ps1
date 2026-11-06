@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     把仓库推到 GitHub，并在推之前把"会被打回的"问题先拦下来。
 
@@ -80,8 +80,14 @@ if ($fail -gt 0) {
 
 # ---------------------------------------------------------------- ④ 远端
 $url = "https://github.com/$GitHubUser/$Repo.git"
-$current = (git remote get-url origin 2>$null)
 $branch = git rev-parse --abbrev-ref HEAD
+
+# ★ 用 `git remote` 而不是 `git remote get-url origin`：
+#   没有 origin 时后者会往 stderr 写 "error: No such remote 'origin'"，
+#   而 Windows PowerShell 5.1 在 $ErrorActionPreference='Stop' 下会把它当成**终止性错误**——
+#   于是"本来很正常的首推"在 5.1 里直接崩掉（在 pwsh 7 里不会）。这条是实际踩到的。
+$remotes = @(git remote)
+$current = if ($remotes -contains 'origin') { (git remote get-url origin) } else { '' }
 
 if ($DryRun) {
     Write-Host "  [DryRun] origin 会指向 $url（当前：$(if ($current) { $current } else { '未设置' })）" -ForegroundColor DarkGray
@@ -106,8 +112,13 @@ Write-Host "  [信息] 分支 $branch，提交数 $((git rev-list --count HEAD))
 
 # ---------------------------------------------------------------- ⑤ 推送
 Write-Host '== 推送 ==' -ForegroundColor Cyan
+# ★ git push 会把进度写到 stderr；在 5.1 + ErrorActionPreference=Stop 下那会被当成
+#   终止性错误。这里临时放行，改用退出码判定。
+$ErrorActionPreference = 'Continue'
 git push -u origin $branch
-if ($LASTEXITCODE -ne 0) {
+$pushCode = $LASTEXITCODE
+$ErrorActionPreference = 'Stop'
+if ($pushCode -ne 0) {
     Pop-Location
     throw @'
 推送失败。最常见的原因是**远端仓库还不存在**：

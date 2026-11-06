@@ -84,6 +84,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ★ 这条是拿真实事故换来的：.ps1 存成 UTF-8 **无 BOM** 时，
+      #   Windows PowerShell 5.1 会按 GBK 解码 → 中文全乱 → 整个脚本解析失败。
+      #   而 PowerShell 7（pwsh）默认 UTF-8，所以开发者本机永远是「好的」——
+      #   典型的「在我机器上没问题」。在 CI 里守一道，比在文档里写一句「记得存 BOM」有用。
+      - name: Check PowerShell scripts are UTF-8 with BOM
+        run: |
+          fail=0
+          while IFS= read -r f; do
+            # 用 od 而不是 xxd：od 属 coreutils，一定在；xxd 需要 vim-common，别赌。
+            head=$(head -c3 "$f" | od -An -tx1 | tr -d ' \n')
+            if [ "$head" != "efbbbf" ]; then
+              echo "::error file=$f::缺少 UTF-8 BOM —— Windows PowerShell 5.1 会按 GBK 读，脚本解析失败"
+              fail=1
+            fi
+          done < <(git ls-files '*.ps1')
+          if [ "$fail" -ne 0 ]; then exit 1; fi
+          echo "所有 .ps1 均带 UTF-8 BOM"
+
       # ★ 只做**静态**校验：解析 compose 文件与变量替换，不起容器。
       #   它能抓住"变量名写错/文件丢了/yaml 语法坏"这类问题，
       #   而这些问题在部署当天才发现的代价，比在这里发现高一个量级。
