@@ -5,19 +5,21 @@
 
 **当前进度：M7 完成** —— `docker compose up -d` 起全套（web / api / ai / mysql / redis），公网经 Cloudflare Tunnel 可达。
 
-<!--
-  ★ CI 徽章：推上 GitHub 后**取消下面这行的注释**，并把 YOUR_GITHUB_NAME 换成你的用户名。
-    在仓库还不存在时贴出来，会是一个永远裂开的图 —— 那比没有更难看。
-  也把上面「快速开始」里的仓库链接补上（这一点是简历能不能被相信的关键）。
+[![ci](https://github.com/inwardzyx/policy-desk/actions/workflows/ci.yml/badge.svg)](https://github.com/inwardzyx/policy-desk/actions/workflows/ci.yml)
+&nbsp;
+[![Java](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
+[![Python](https://img.shields.io/badge/Python-FastAPI-3776AB?logo=python&logoColor=white)](https://fastapi.tiangolo.com/)
 
-  [![ci](https://github.com/YOUR_GITHUB_NAME/policy-desk/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_GITHUB_NAME/policy-desk/actions/workflows/ci.yml)
--->
+> 算法层在另一个仓库：[campus-policy-rag](https://github.com/inwardzyx/campus-policy-rag)（检索 / 精排 / 拒答 / 评测门禁）。
+> 两层各自可独立测试与替换 —— 业务层不认识"向量"，算法层不认识"用户"。
 
 | 检查 | 覆盖什么 |
 |---|---|
 | `java` | `mvn test`（63 条，H2 内存库，不连 MySQL） |
 | `web` | `npm ci` → `vue-tsc --noEmit` + `vite build` → `vitest`（4 条） |
-| `deploy` | `docker compose config -q` + `nginx -t`（静态校验，不起容器） |
+| `deploy` | `docker compose config -q` + `nginx -t` + `.ps1` 编码（静态校验，不起容器） |
 
 ---
 
