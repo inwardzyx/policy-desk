@@ -81,6 +81,17 @@
   .edu { display: flex; justify-content: space-between; font-size: 9.8pt; }
   .edu .when { color: var(--muted); font-size: 9.2pt; }
 
+  .sec {
+    font-size: 9.4pt;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 2.2mm 0 0.8mm;
+    padding-left: 1.6mm;
+    border-left: 2.4px solid var(--accent);
+  }
+
+  .gain { font-size: 9.5pt; }
+
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
 
@@ -128,30 +139,49 @@
 
 <h2>项目经历</h2>
 
-<h3>制度问答台 —— 分层架构的企业问答系统<span class="when">个人项目 · 2026.09 – 2026.11</span></h3>
-<div class="stack">Vue 3 + TS + Vite ｜ Spring Boot 3 + MyBatis-Plus ｜ MySQL / Redis ｜ Python + FastAPI + bge-small-zh / BM25 / RRF / DeepSeek ｜ Docker Compose + Nginx</div>
+<h3>制度问答台 —— 面向企业制度的可核验问答系统<span class="when">个人项目 · 2026.09 – 2026.11</span></h3>
 <div class="summary">
-  把 10 份校级制度做成「答案带条款出处、库里没有就当场拒答」的问答系统，
-  并按<span class="kw">「谁在问、能问什么、问了多少次」</span>拆成业务层与无状态算法层，两层各自可独立测试与替换。
+  把 10 份制度文档做成「答案带条款出处、库里没有就当场拒答」的问答系统，按
+  <span class="kw">「谁在问、能问什么、问了多少次」</span>拆成 Java 业务层与无状态算法层 ——
+  算法层不认识「用户」、只认 ACL。
 </div>
+
+<div class="sec">个人工作</div>
 <ul>
-  <li><b>分层与配额</b>：前端 → Java 业务层（用户 / 角色 / 配额 / 审计）→ 算法层（检索 / 精排 / 生成）。
-    <span class="kw">配额在调用模型之前判定</span>，超额请求零 token 消耗（429 + <code>Retry-After</code>）；
-    实测问答端到端 ≈ <b>4.0 s</b>，检索 p50 <b>3.1 ms</b> / p95 <b>7.6 ms</b>（含向量编码，n=240）。</li>
-  <li><b>权限（核心）</b>：角色 → ACL <span class="kw">单向投影</span>（employee → public；hr → hr, public；未登记角色 403 不降级），
-    身份只解析一次、下游只认 ACL。实测同一问题：<b>hr 命中「加班与补贴」并带原文引用，employee 明确拒答</b>；
+  <li><b>拆层与配额</b>：算法层（检索 / 精排 / 生成）与业务层（用户 / 角色 / 配额 / 审计）解耦，
+    同一套检索可被不同业务复用，也能脱离数据库单测；
+    配额放在<span class="kw">调用模型之前</span>判定，超额请求<b>零 token 消耗</b>（429 + <code>Retry-After</code>）。</li>
+  <li><b>权限（核心）</b>：角色 → ACL <span class="kw">单向投影</span>，身份只解析一次、下游只认 ACL。
+    实测同一问题：<b>hr 命中「加班与补贴」并带原文引用，employee 明确拒答</b>；
     而 employee 问「年假」可正常回答 —— 差别只来自令牌里的角色。</li>
-  <li><b>入库把关</b>：286 块原始材料 → <b>放行 263 / 拦下 23</b>，每条理由可在 <code>/guard-report</code> 逐条查；
-    近似重复阈值 <b>0.96 是量出来的</b>（最像的一对合法条款 0.9230、该拦的同义改写 0.9839，两簇之间是空的）。</li>
-  <li><b>不编造</b>：精排最高分 &lt; 5 直接返回「我不编」、不调用生成模型；精排挂掉时降级走粗捞并标
-    <code>rerank_used=false</code>，<b>故障不伪装成「库里没有」</b>。</li>
-  <li><b>评测</b>：双评测集（调参集 + <b>105 题盲出独立集</b>，与调参集零重合）；
-    Recall@5 <b>44/44</b>、漏答率 <b>4/44 → 1/44</b>（exact McNemar <b>p = 0.0156</b>）；
-    另有三条「看起来更好」的改法被同一门禁在 39 题上同时否决、全部不动。</li>
-  <li><b>工具与交付</b>：自写 <b>MCP server / client</b>（手写 JSON-RPC over stdio，不依赖官方 SDK），
-    把 <code>search_policy</code> 从借道 <code>/chat</code> 改到 <code>/search</code>，配对 A/B 证明渲染文本<b>逐字节一致</b>、每次省 ≈ <b>366 token</b>；
-    <b>63 条后端测试</b> + <b>4 条前端测试</b> + GitHub Actions 三 job；Compose 编排五容器、Nginx 反代、公网 Tunnel 可达。</li>
+  <li><b>检索</b>：向量 + BM25 + RRF 融合 + LLM 精排；把条款号写进索引文本后，
+    条款类问题 <b>2/15 → 13/15</b>（同 32 题配对实验，保留回滚开关）。</li>
+  <li><b>评测</b>：双评测集（调参集 + <b>105 题盲出独立集</b>，零重合），用 exact McNemar 判定改动是否真有效
+    （<b>p = 0.0156</b>）；另有三条「看起来更好」的改法被同一门禁否决、全部不动。</li>
+  <li><b>交付</b>：<b>63 条后端测试</b>（H2，不依赖本机 MySQL）+ <b>4 条前端测试</b> + CI 三 job；
+    Compose 编排五容器，问答端到端 ≈ <b>4.0 s</b>，检索 p50 <b>3.1 ms</b>。</li>
 </ul>
+
+<div class="sec">项目难点</div>
+<ul>
+  <li><b>权限要穿过两层，最容易漏在「哪一层」</b> —— 检索在 Python、身份在 Java，每层各判一次迟早有一层漏。
+    解法：只保留一处转换（角色 → ACL），<b>未登记角色直接 403、不降级</b>（宁可拒绝，不要猜）。</li>
+  <li><b>入库「该拦的」和「不该拦的」分不开</b> —— 固定阈值 0.9 误杀合法条款、0.99 又放过同义改写。
+    解法：先量出两簇的真实分布（最像的合法对 <b>0.9230</b>、该拦的改写 <b>0.9839</b>，中间是空的），
+    据此定 <b>0.96</b>；286 块放行 263 / 拦 23，每条理由可逐条查。</li>
+  <li><b>故障不能被伪装成「库里没有」</b> —— 精排返回非 JSON 时若给全 0 分，会触发一条平平无奇的拒答，
+    故障被永久掩盖。解法：抛错并记录原始返回；只有精排 &lt; 5 分才拒答，降级时标
+    <code>rerank_used=false</code>；审计只存问题的 SHA-256（可比对频次、还原不出原文）。</li>
+</ul>
+
+<div class="sec">个人收获</div>
+<div class="gain">
+  一套系统<b>「能改」比「能跑」难得多</b>：学会了先写判据再改代码，
+  也学会了把「不构成证据」的结论如实写下来，而不是挑好看的数字。
+</div>
+
+<div class="stack">技术栈：Vue 3 + TS + Vite ｜ Spring Boot 3 + MyBatis-Plus + MySQL / Redis ｜
+  Python + FastAPI + bge-small-zh / BM25 / RRF / DeepSeek ｜ Docker Compose + Nginx</div>
 
 <h2>教育背景</h2>
 <div class="edu">
