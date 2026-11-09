@@ -121,73 +121,73 @@
 
 <h2>专业技能</h2>
 <div class="skills">
-  <div class="k">前端</div>
-  <div>Vue 3 + TypeScript + Vite；组件化、路由守卫、开发代理与生产同源反代</div>
-
-  <div class="k">后端</div>
-  <div>Java 17 / Spring Boot 3（Web、Validation、Actuator）、MyBatis-Plus、JWT(HS256)、BCrypt、统一错误模型</div>
-
-  <div class="k">数据</div>
-  <div>MySQL 8（建表 / 索引 / 时区）、Redis（原子计数 + 按天 TTL）</div>
+  <div class="k">评测与数据</div>
+  <div><b>评测集设计</b>（105 题盲出独立集）· <b>exact McNemar 配对检验</b> · <b>变异测试</b>（先证明判据会红）·
+    <b>失败归因分桶</b> · 标注一致性（Cohen's κ）</div>
 
   <div class="k">AI 工程</div>
-  <div>RAG（向量 + BM25 + RRF）、LLM 精排与生成、拒答策略、评测集与配对显著性检验、MCP（手写 JSON-RPC）</div>
+  <div>RAG（向量 + BM25 + RRF）、LLM 精排与生成、三级拒答策略、MCP（手写 JSON-RPC over stdio）</div>
 
-  <div class="k">工程化</div>
-  <div>Docker Compose 多容器编排、Nginx 反代、GitHub Actions、pytest / JUnit / Vitest</div>
+  <div class="k">后端</div>
+  <div>Java 17 / Spring Boot 3（Web、Validation、Actuator）、MyBatis-Plus、JWT(HS256)、MySQL 8、Redis</div>
+
+  <div class="k">前端与交付</div>
+  <div>Vue 3 + TypeScript + Vite ｜ Docker Compose、Nginx、GitHub Actions</div>
 </div>
 
 <h2>项目经历</h2>
 
 <h3>制度问答台 —— 面向企业制度的可核验问答系统<span class="when">个人项目 · 2026.09 – 2026.11</span></h3>
+<div class="stack">两个仓库：
+  <a href="https://github.com/inwardzyx/policy-desk">policy-desk</a>（业务层 + 前端）·
+  <a href="https://github.com/inwardzyx/campus-policy-rag">campus-policy-rag</a>（算法层）—— CI 均绿
+</div>
 <div class="summary">
   把 10 份制度文档做成「答案带条款出处、库里没有就当场拒答」的问答系统，按
   <span class="kw">「谁在问、能问什么、问了多少次」</span>拆成 Java 业务层与无状态算法层 ——
   算法层不认识「用户」、只认 ACL。
 </div>
 
+<div class="sec">评测方法与结论（我的主线）</div>
+<ul>
+  <li><b>先用方法，再看分数</b>：改动是否有效一律用 <b>exact McNemar 配对检验</b>判定（<b>p = 0.0156</b>），
+    不看单次运行的分差 —— 同一套题的运行间抖动有 ±2，只看差值会把噪声当收益。</li>
+  <li><b>独立集不重叠</b>：调参集与 <b>105 题盲出独立集</b>零重合，出题的人和改代码的人拿到的是两份数据，
+    避免「用自己调过的题证明自己」。</li>
+  <li><b>负结果如实写</b>：另有三条「看起来更好」的改法（改融合权重 / 索引增强 / 换 embedding）
+    在 39 题上同时被否决，<b>全部不动</b> —— 把更好的数字主动扔掉，比多一个亮点更能证明纪律。</li>
+  <li><b>判据的判据</b>：<b>24 个变异体脚本</b>先证明「把判据打坏它会红」，再谈它是否通过；
+    扫到 0 条、空转一律报红，不许报绿。</li>
+</ul>
+
 <div class="sec">个人工作</div>
 <ul>
-  <li><b>拆层与配额</b>：算法层（检索 / 精排 / 生成）与业务层（用户 / 角色 / 配额 / 审计）解耦，
-    同一套检索可被不同业务复用，也能脱离数据库单测；
-    配额放在<span class="kw">调用模型之前</span>判定，超额请求<b>零 token 消耗</b>（429 + <code>Retry-After</code>）。</li>
   <li><b>权限（核心）</b>：角色 → ACL <span class="kw">单向投影</span>，身份只解析一次、下游只认 ACL。
     实测同一问题：<b>hr 命中「加班与补贴」并带原文引用，employee 明确拒答</b>；
     而 employee 问「年假」可正常回答 —— 差别只来自令牌里的角色。</li>
   <li><b>检索</b>：向量 + BM25 + RRF 融合 + LLM 精排；把条款号写进索引文本后，
     条款类问题 <b>2/15 → 13/15</b>（同 32 题配对实验，保留回滚开关）。</li>
-  <li><b>评测</b>：双评测集（调参集 + <b>105 题盲出独立集</b>，零重合），用 exact McNemar 判定改动是否真有效
-    （<b>p = 0.0156</b>）；另有三条「看起来更好」的改法被同一门禁否决、全部不动。</li>
-  <li><b>交付</b>：<b>63 条后端测试</b>（H2，不依赖本机 MySQL）+ <b>4 条前端测试</b> + CI 三 job；
-    Compose 编排五容器，问答端到端 ≈ <b>4.0 s</b>，检索 p50 <b>3.1 ms</b>。</li>
+  <li><b>拆层与配额</b>：算法层（检索 / 精排 / 生成）与业务层（用户 / 角色 / 配额 / 审计）解耦；
+    配额放在<span class="kw">调用模型之前</span>判定，超额请求<b>零 token 消耗</b>（429 + <code>Retry-After</code>）。</li>
 </ul>
 
 <div class="sec">项目难点</div>
 <ul>
   <li><b>权限要穿过两层，最容易漏在「哪一层」</b> —— 检索在 Python、身份在 Java，每层各判一次迟早有一层漏。
     解法：只保留一处转换（角色 → ACL），<b>未登记角色直接 403、不降级</b>（宁可拒绝，不要猜）。</li>
-  <li><b>入库「该拦的」和「不该拦的」分不开</b> —— 固定阈值 0.9 误杀合法条款、0.99 又放过同义改写。
-    解法：先量出两簇的真实分布（最像的合法对 <b>0.9230</b>、该拦的改写 <b>0.9839</b>，中间是空的），
-    据此定 <b>0.96</b>；286 块放行 263 / 拦 23，每条理由可逐条查。</li>
   <li><b>故障不能被伪装成「库里没有」</b> —— 精排返回非 JSON 时若给全 0 分，会触发一条平平无奇的拒答，
     故障被永久掩盖。解法：抛错并记录原始返回；只有精排 &lt; 5 分才拒答，降级时标
     <code>rerank_used=false</code>；审计只存问题的 SHA-256（可比对频次、还原不出原文）。</li>
 </ul>
 
-<div class="sec">个人收获</div>
-<div class="gain">
-  一套系统<b>「能改」比「能跑」难得多</b>：学会了先写判据再改代码，
-  也学会了把「不构成证据」的结论如实写下来，而不是挑好看的数字。
+<div class="stack">技术栈：Vue 3 + TS ｜ Spring Boot 3 + MyBatis-Plus + MySQL / Redis ｜
+  Python + FastAPI + bge-small-zh / BM25 / RRF / DeepSeek ｜ Docker Compose + Nginx ｜ 63 后端测试 + 4 前端测试 + CI 三 job
 </div>
-
-<div class="stack">技术栈：Vue 3 + TS + Vite ｜ Spring Boot 3 + MyBatis-Plus + MySQL / Redis ｜
-  Python + FastAPI + bge-small-zh / BM25 / RRF / DeepSeek ｜ Docker Compose + Nginx</div>
 
 <h2>教育背景</h2>
 <div class="edu">
   <div><b>韩山师范学院</b> ｜ 软件工程（五年制专本衔接，专科段在读）</div>
-  <div class="when">2025 – 2030（2030 年毕业）</div>
+  <div class="when">2025 – 2030（可 2027 年起长期实习）</div>
 </div>
-
 </body>
 </html>
