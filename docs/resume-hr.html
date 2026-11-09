@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>周语昕 · 简历（HR 版）</title>
+<style>
+  @page { size: A4; margin: 12mm 13mm; }
+
+  :root { --ink: #1a1a1a; --muted: #555; --line: #d8d8d8; --accent: #1f4e79; }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+    font-size: 10.4pt;
+    line-height: 1.52;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  h1 { font-size: 20pt; margin: 0 0 1.6mm; letter-spacing: 1px; }
+
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
+
+  .intent { font-size: 11pt; font-weight: 600; color: var(--accent); margin-bottom: 1mm; }
+
+  .contact { font-size: 9.6pt; color: var(--muted); line-height: 1.7; }
+
+  .photo {
+    width: 24mm; height: 32mm; border: 1px solid var(--line);
+    border-radius: 2px; object-fit: cover; flex: 0 0 auto;
+  }
+
+  /* ★ HR 版的关键：第一屏是一句人话，不是方法论 */
+  .oneline {
+    margin: 3mm 0 0;
+    padding: 2.4mm 3mm;
+    background: #f4f7fa;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 3px 3px 0;
+    font-size: 10.4pt;
+  }
+
+  h2 {
+    font-size: 11pt;
+    margin: 4.2mm 0 1.6mm;
+    padding-bottom: 0.9mm;
+    border-bottom: 1.2px solid var(--accent);
+    color: var(--accent);
+  }
+
+  h3 { font-size: 10.8pt; margin: 2.6mm 0 1mm; }
+  h3 .when { font-weight: 400; color: var(--muted); font-size: 9.6pt; }
+
+  ul { margin: 0; padding-left: 4.6mm; }
+  li { margin-bottom: 1.3mm; }
+  li::marker { color: var(--accent); }
+
+  b { font-weight: 600; }
+  .kw { color: var(--accent); font-weight: 600; }
+
+  .can { display: grid; grid-template-columns: 26mm 1fr; gap: 1.2mm 3mm; font-size: 10.2pt; }
+  .can .k { color: var(--accent); font-weight: 600; }
+
+  .edu { display: flex; justify-content: space-between; font-size: 10.2pt; }
+  .edu .when { color: var(--muted); }
+
+  .repo { font-size: 9.6pt; color: var(--muted); margin-top: 1.2mm; }
+  a { color: var(--accent); text-decoration: none; }
+
+  li { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1>周语昕</h1>
+    <div class="intent">求职意向：AI 应用开发 / 后端开发（实习）</div>
+    <div class="contact">
+      13022069636 ／ zyx167167@qq.com<br />
+      可实习：<b>2027 年 1 月 15 日起，每周 4–5 天，可连续 6 个月</b><br />
+      寒假可先远程跟项目 ｜ GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（两个仓库 CI 均绿）
+    </div>
+  </div>
+  <!-- 照片位：把照片存成同目录 photo.jpg，删除下面这行的注释即可 -->
+  <!-- <img class="photo" src="photo.jpg" alt="" /> -->
+</div>
+
+<div class="oneline">
+  能<b>独立把一个系统从零写到能上线</b>（前端 + 后端 + 算法服务 + 容器部署），
+  也能做需要耐心和条理的测试与数据整理工作 —— 两样我都有做完整的东西可以看。
+</div>
+
+<h2>我能做什么</h2>
+<div class="can">
+  <div class="k">写后端</div>
+  <div>Java 17 / Spring Boot 3 写接口：登录鉴权（JWT）、角色权限、每日用量限额（Redis）、操作审计落库</div>
+
+  <div class="k">写前端</div>
+  <div>Vue 3 + TypeScript 做完整页面：登录、问答、文档上传与删除（含权限控制与错误提示）</div>
+
+  <div class="k">做 AI 应用</div>
+  <div>文档检索问答（向量 + 关键词混合检索 + 精排 + 查不到就明确拒答），可接 DeepSeek 等大模型</div>
+
+  <div class="k">做测试与交付</div>
+  <div>写单元测试、配好 CI（每次提交自动跑）、用 Docker Compose 把整套服务部署到一台机器上</div>
+</div>
+
+<h2>项目经历</h2>
+
+<h3>企业制度问答系统<span class="when">个人项目 · 2026.09 – 2026.11</span></h3>
+<ul>
+  <li><b>做了什么</b>：把 10 份制度文档做成问答系统 —— 员工用自然语言提问，<b>答案下面带原文条款出处</b>，
+    资料里没有就明确说「没有」，<b>不编</b>。解决的是「制度文件几百页，人找不到、找到了也不敢信」的问题。</li>
+  <li><b>权限</b>：不同角色看到不同内容。实测同一个问题，人事能看到薪酬条款并带出处，
+    普通员工被明确拒绝；而普通员工问年假能正常回答 —— <b>差别只来自登录账号的角色</b>。</li>
+  <li><b>质量</b>：<b>63 条后端测试 + 4 条前端测试</b>，GitHub 上每次提交自动运行；
+    每次改动是否真的变好，用同一套题对照判定，不靠感觉。</li>
+  <li><b>交付</b>：<b>5 个容器一条命令起</b>，公网可访问，一次问答约 <b>4 秒</b>；附使用说明，别人照着能跑起来。</li>
+</ul>
+<div class="repo">代码：
+  <a href="https://github.com/inwardzyx/policy-desk">policy-desk</a>（后端 + 前端）·
+  <a href="https://github.com/inwardzyx/campus-policy-rag">campus-policy-rag</a>（检索与生成）
+</div>
+
+<h2>教育背景</h2>
+<div class="edu">
+  <div><b>韩山师范学院</b> ｜ 软件工程（五年制专本衔接，专科段在读）</div>
+  <div class="when">2025 – 2030</div>
+</div>
+
+</body>
+</html>
