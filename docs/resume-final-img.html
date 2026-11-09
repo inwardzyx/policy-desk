@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>周语昕 · 简历</title>
+<style>
+  /* ★ 截图专用：屏幕媒体下模拟 A4 纸张与打印边距 */
+  html { background: #fff; }
+  body { width: 210mm; min-height: 297mm; padding: 11mm 12mm; margin: 0 auto; background: #fff; }
+  @page { size: A4; margin: 0; }
+
+  :root { --ink: #1b1b1b; --muted: #5b5b5b; --line: #dcdcdc; --accent: #1f4e79; }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0; color: var(--ink);
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+    font-size: 10pt; line-height: 1.46;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  h1 { font-size: 19pt; margin: 0 0 1.4mm; letter-spacing: 1.2px; }
+
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
+  .intent { font-size: 10.4pt; font-weight: 600; color: var(--accent); margin-bottom: 1mm; }
+  .contact { font-size: 9.2pt; color: var(--muted); line-height: 1.65; }
+  .photo { width: 23mm; height: 31mm; border: 1px solid var(--line); border-radius: 2px; object-fit: cover; flex: 0 0 auto; }
+
+  h2 {
+    font-size: 10.6pt; margin: 3.6mm 0 1.4mm; padding-bottom: 0.8mm;
+    border-bottom: 1.2px solid var(--accent); color: var(--accent);
+  }
+
+  h3 { font-size: 10.2pt; margin: 2mm 0 0.6mm; }
+  h3 .role { font-weight: 400; color: var(--muted); font-size: 9.2pt; }
+  h3 .when { font-weight: 400; color: var(--muted); font-size: 9.2pt; float: right; }
+
+  .desc { margin: 0 0 0.9mm; }
+  .stack { font-size: 8.9pt; color: var(--muted); margin: 0 0 1.1mm; }
+
+  .lab { font-size: 9.3pt; font-weight: 600; color: var(--accent); margin: 1.6mm 0 0.5mm; }
+
+  ul { margin: 0 0 0.6mm; padding-left: 4.4mm; }
+  li { margin-bottom: 0.9mm; }
+  li::marker { color: var(--accent); }
+
+  b { font-weight: 600; }
+  .kw { color: var(--accent); font-weight: 600; }
+  code { font-family: Consolas, monospace; font-size: 9pt; }
+
+  .edu { display: flex; justify-content: space-between; font-size: 9.9pt; }
+  .edu .when { color: var(--muted); font-size: 9.2pt; }
+
+  .skills { display: grid; grid-template-columns: 21mm 1fr; gap: 0.9mm 2.6mm; font-size: 9.5pt; }
+  .skills .k { color: var(--accent); font-weight: 600; }
+
+  li, h3 { break-inside: avoid; }
+  a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1>周语昕</h1>
+    <div class="intent">求职意向：AI 应用开发 / 后端开发（实习）</div>
+    <div class="contact">
+      13022069636 ／ zyx167167@qq.com<br />
+      GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（两个仓库，CI 均绿）<br />
+      到岗时间：<b>可立即到岗</b>，每周 4–5 天，可连续 6 个月；<b>寒假可先远程跟项目</b>
+    </div>
+  </div>
+  <!-- 照片位：照片存成同目录 photo.jpg 后，删掉下面这行的注释
+  <img class="photo" src="photo.jpg" alt="" /> -->
+</div>
+
+<h2>专业技能</h2>
+<div class="skills">
+  <div class="k">后端开发</div>
+  <div>Java 17 / Spring Boot 3：写 REST 接口、JWT 登录鉴权、角色权限控制、Redis 每日限额、审计落库、MyBatis-Plus + MySQL 8</div>
+
+  <div class="k">前端开发</div>
+  <div>Vue 3 + TypeScript + Vite：独立完成登录 / 问答 / 文档管理三个页面，含路由守卫、表单校验、错误提示</div>
+
+  <div class="k">AI 应用</div>
+  <div>检索问答（向量 + BM25 融合 + LLM 精排）、拒答策略、DeepSeek 接入；会写 MCP server（手写 JSON-RPC 协议）</div>
+
+  <div class="k">测试与质量</div>
+  <div>pytest / JUnit / Vitest 写单测；用<b>变异测试</b>验证「判据在坏情况下会不会红」；GitHub Actions 三 job 持续跑</div>
+
+  <div class="k">部署运维</div>
+  <div>Docker Compose 编排五容器、Nginx 反代与上传限额、Cloudflare Tunnel 暴露公网</div>
+</div>
+
+<h2>项目经历</h2>
+
+<h3>制度问答台 —— 企业制度问答系统<span class="role">（独立开发）</span><span class="when">2026.09 – 2026.11</span></h3>
+<div class="desc">
+  面向学校 / 企业制度文档的问答系统：员工用自然语言提问，<b>答案下方带原文条款出处</b>；资料里没有就明确拒答，<b>不编造</b>。
+  按「谁在问、能问什么、问了多少次」拆成 Java 业务层与 Python 算法层 —— 算法层不认识「用户」，只认 ACL。
+</div>
+<div class="stack">
+  技术栈：Vue 3 + TypeScript ｜ Spring Boot 3 + MyBatis-Plus + MySQL 8 + Redis ｜
+  Python + FastAPI + bge-small-zh / BM25 / RRF + DeepSeek ｜ Docker Compose + Nginx + GitHub Actions
+</div>
+
+<div class="lab">我的工作</div>
+<ul>
+  <li><b>权限（核心）</b>：把「角色」在业务层<b>一次性投影成 ACL</b>（员工 → 公开；人事 → 人事 + 公开；未登记角色直接 403、不降级），
+    算法层只认 ACL 不认用户。实测同一问题：<b>人事命中薪酬条款并带出处，普通员工被明确拒绝</b>；
+    而普通员工问「年假」能正常回答 —— 差别只来自账号角色，请求参数一个字没变。</li>
+  <li><b>检索效果</b>：向量 + BM25 双路召回 + RRF 融合 + LLM 精排；把条款号写进索引文本后，
+    条款类问题命中 <b>2/15 → 13/15</b>（同 32 题配对对照，保留回滚开关，出问题可一键退回）。</li>
+  <li><b>成本保护</b>：每日配额在<b>调用大模型之前</b>判定（Redis 计数 + 按天过期），超限返回 429 并给出重试时间，
+    超额请求<b>不产生任何模型费用</b>；问答、拒答、超限三类决策全部落审计表。</li>
+  <li><b>质量判定</b>：改动是否真的变好，用调参集之外的 <b>105 题独立集 + 配对显著性检验</b>判定，不看单次分数的涨跌；
+    另有三条「看起来更好」的改法被同一门禁否决、<b>全部没上</b>。</li>
+</ul>
+
+<div class="lab">项目难点</div>
+<ul>
+  <li><b>权限要穿过两层，最容易漏在「哪一层」</b>：检索在 Python、身份在 Java，两边各判一次迟早有一层漏。
+    解法是<b>只保留一处转换</b>，未知角色直接拒绝而不是降级 —— 宁可拒绝，也不要猜。</li>
+  <li><b>模型故障不能被伪装成「库里没有」</b>：精排返回非法内容时如果按 0 分处理，会触发一条平平无奇的拒答，
+    故障就被永久掩盖。改成抛错并记录原始返回，<b>只有分数确实低才拒答</b>，降级时在响应里标记。</li>
+</ul>
+
+<div class="lab">项目成果</div>
+<ul>
+  <li><b>63 条后端测试 + 4 条前端测试</b>，GitHub 每次提交自动运行；五个容器一条命令起，公网可访问，一次问答约 <b>4 秒</b>。</li>
+  <li>两个仓库公开、CI 全绿：
+    <a href="https://github.com/inwardzyx/policy-desk">policy-desk</a>（后端 + 前端）·
+    <a href="https://github.com/inwardzyx/campus-policy-rag">campus-policy-rag</a>（检索与生成）</li>
+</ul>
+
+<h2>教育背景</h2>
+<div class="edu">
+  <div><b>韩山师范学院</b> ｜ 软件工程（五年制专本衔接）</div>
+  <div class="when">2025 – 2030</div>
+</div>
+
+</body>
+</html>
