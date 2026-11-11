@@ -13,8 +13,8 @@
 它现在在哪  代码全做完（M2–M7）、两个仓库公开且 CI 全绿、简历三版已出、录像脚本已写、
              评测基线已出（promptfoo，held-out 105 题，离线/在线两份分数）。
              卡在「投递」：用户已投 200 份中小厂实习，0 面试。
-下一步该做  ② 自研配对门禁 + 一致性 κ ③ 改投递策略并恢复投递
-             （① 用 promptfoo 跑基线 2026-11-11 已完成，产物 `_review_rag-cs/eval/reports/`）
+下一步该做  ① 找人标 20 条（κ 的样本，脚本与规范已就位）② 改投递策略并恢复投递
+             （promptfoo 基线 + 配对门禁 + κ 脚本 + DECISIONS.md 均已完成，见 §5）
 ```
 
 ## 1. 用户是谁（决定"什么算有用"）
@@ -41,6 +41,8 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
   kb/                   loader / chunking / runstate / attribution / loopgate
   evalset/              评测集 + 报告产物（ARTIFACTS 单里登记的才算）
   eval/                 promptfoo 评测壳（held-out 105 题基线；入口 eval/README.md）
+  DECISIONS.md          为什么用现成工具 / 补哪三块 / 明确不做什么（面试材料）
+  evalset/heldout/questions.sha256  评测集校验和（改题必须一起更新，pre-push 拦）
   scripts/              24 个变异脚本、各类检查器、评测运行器
   scripts/hooks/        pre-commit（数字对账）、pre-push（6 道检查）
 ```
@@ -58,7 +60,8 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 | 部署 | compose 五容器 healthy；经 nginx 登录/问答/上传/删除全通；问答 ≈4.0s |
 | CI | 两个仓库均绿（policy-desk 3 个 job、campus-policy-rag 3 个 job） |
 | 算法层 | 462 passed / 27 skipped（27 条 skip 全是"本机无 Redis"） |
-| 评测基线（held-out 105 题） | `eval/reports/BASELINE-offline.md`（30/44 · 42/44 · 12/61）+ `BASELINE-online.md`（40/44 · 42/44 · 41/61）；promptfoo 与 `run_eval.py` 同刻逐项一致（`summarize.py --compare`） |
+| 评测基线（held-out 105 题） | `eval/reports/BASELINE-offline.md`（30/44 · 42/44 · 12/61）+ `BASELINE-online.md`（40/44 · 42/44 · 41/61）；每份报告头带 `kb/runstate.py` 运行指纹；promptfoo 与 `run_eval.py` 同刻逐项一致 |
+| 判据收尾 | held-out 校验和 + checker + 常驻变异（④）；指纹进报告（②）；`eval/gate.py` 再导出 `kb/loopgate`；`eval/agreement.py`（n<20 拒绝输出 κ）+ 标注规范 + 20 条示例 |
 | 简历 | `docs/resume-final.pdf`（投递）+ `resume-v2-ai-eval.pdf`（技术面）+ PNG/JPG |
 
 ## 4. 已经做过的关键决定（**别重新讨论**）
@@ -70,14 +73,18 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 5. **不做数据中台**（不造数仓/Flink），只做"评测需要的那层数据底座"。
 6. **评测中台策略已改**：用 promptfoo（27k star）打底跑基线 → 只自研 3 块（McNemar 配对门禁、业务判据、失败归因），并写清"为什么不用现成"。
 7. **不代投 BOSS**（风控封号风险 + 需要登录态）。只做选岗/话术/台账，发送由用户本人执行。
+8. **对外叙事定为「评测资产版本化 + 运行指纹」，不说"数据中台/评测中台"**（2026-11-11 盲审）：
+   中台是资深平台团队的词，按那个标准会被追问多租户/调度/治理委员会；本项目该被追问的是判据会不会响。
+9. **不做 `git bisect`**：入口/语义要逐版本验证，bisect 的前提（入口一致）本身得先被证明 —— 已用
+   worktree 三组合实测替代（`eval/reports/repro-old-code.md`）。
 
 ## 5. 待办（按优先级）
 
 | # | 事项 | 判据 |
 |---|---|---|
 | 1 | ✅ 用 promptfoo 把 105 题跑出基线（2026-11-11） | 两份分数已落盘 `eval/reports/BASELINE-offline.md` / `BASELINE-online.md`；`summarize.py --compare` 与 `run_eval.py` 同刻逐项一致，且把对数改坏会红（变异用例验过） |
-| 2 | 自研 `eval/gate.py`（配对 McNemar）+ `eval/agreement.py`（人机 κ） | 故意把指标改坏 → 门禁必红；样本 <20 → 拒绝输出 κ |
-| 3 | 写 `DECISIONS.md`：为什么用现成工具 + 哪三块必须自研 | 一页，能直接当面试材料 |
+| 2 | ✅/⏳ `eval/gate.py`（再导出 `kb/loopgate`，只出翻转表 + p，不判该不该发）✅；`eval/agreement.py`（n<20 或 pe=1 拒绝输出 κ）✅，**标注等人做** ⏳ | 门禁跨层拒绝 + 翻转变单边 p 变小（`tests/test_eval_gate.py`）；κ 三条拒绝（`tests/test_eval_agreement.py`） |
+| 3 | ✅ 写 `DECISIONS.md`：为什么用现成工具 + 补哪三块 + 明确不做什么 | 一页，`_review_rag-cs/DECISIONS.md`，含修正后的 replay 理由与 35/44 案例 |
 | 4 | 恢复投递（BOSS 直聊，话术见 `docs/boss-greeting.md`） | 一周投 75–100 条，统计回复率 |
 | 5 | 等用户提供 **10 个投过的 JD** 做匹配诊断 | 输出"白投了多少个"的结论 |
 
