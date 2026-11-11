@@ -3,6 +3,8 @@
 > 一个**能证明自己没变坏**的企业制度问答系统。
 > 每条答案带可核验出处，答不出就明确拒答，改动发布前必须过评测门禁。
 
+> 📄 **接手/上手请看 [HANDOFF.md](HANDOFF.md)** —— 现状、待办、环境事实、以及 20 多条真实踩过的坑。
+
 **当前进度：M7 完成** —— `docker compose up -d` 起全套（web / api / ai / mysql / redis），公网经 Cloudflare Tunnel 可达。
 
 [![ci](https://github.com/inwardzyx/policy-desk/actions/workflows/ci.yml/badge.svg)](https://github.com/inwardzyx/policy-desk/actions/workflows/ci.yml)
