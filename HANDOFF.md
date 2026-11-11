@@ -62,6 +62,7 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 | 算法层 | 462 passed / 27 skipped（27 条 skip 全是"本机无 Redis"） |
 | 评测基线（held-out 105 题） | `eval/reports/BASELINE-offline.md`（30/44 · 42/44 · 12/61）+ `BASELINE-online.md`（40/44 · 42/44 · 41/61）；每份报告头带 `kb/runstate.py` 运行指纹；promptfoo 与 `run_eval.py` 同刻逐项一致 |
 | 判据收尾 | held-out 校验和 + checker + 常驻变异（④）；指纹进报告（②）；`eval/gate.py` 再导出 `kb/loopgate`；`eval/agreement.py`（n<20 拒绝输出 κ）+ 标注规范 + 20 条示例 |
+| 报告新鲜度 | `scripts/check_report_freshness.py`（CI 快 job，`--strict`）：逐份报告比「git sha + docs/kb + docs/inbox 哈希」，四态 + UNVERIFIABLE；被引用且非 FRESH ⇒ exit 1。补的正是 `check_readme_numbers` 管不了的那一半（README ↔ 产物一致 ≠ 产物 ↔ 当前代码一致） |
 | 简历 | `docs/resume-final.pdf`（投递）+ `resume-v2-ai-eval.pdf`（技术面）+ PNG/JPG |
 
 ## 4. 已经做过的关键决定（**别重新讨论**）
@@ -146,6 +147,9 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 | CI 慢 job 15 个用例 pydantic 报 "DEEPSEEK_API_KEY must be set" | 这些用例会构造真 `ChatDeepSeek`，构造即要求 key | 已给慢 job 配**假 key**（真调用会 401，CI 里仍无真密钥） |
 | 本地每跑一次 pytest 就扣一次 API 费用 | `test_cache_is_on_by_default_with_rollback_switch` **真的联网** | 已用 monkeypatch 把 `_invoke_llm` 换成固定返回 |
 | 中文输出在管道里变乱码 | GBK 管道 | 脚本已 `sys.stdout.reconfigure(encoding="utf-8", errors="replace")` |
+| 新鲜度检查一上线，**每份报告都 STALE** | 规格写的「报告头 sha == HEAD」对**已入库**报告走不通：报告在 HEAD=X 生成、作为新提交 C 入库后 HEAD=C≠X | 改判据为「sha 相同 **或**（是祖先 **且** `git diff sha..HEAD` 里没有影响结果的文件）」。排除清单是**排除式**：清单外一律算影响 ⇒ 宁可误报 |
+| 指纹来源坏掉时，检查器**判 FRESH** | `capture()` 返回空 ⇒ 当前语料哈希是空串，而 `"abc".startswith("")` 恒真 ⇒ 「语料没变」凭空成真 | 拿不到 docs/kb 或 docs/inbox 的当前哈希时，一律判 `UNVERIFIABLE`（自测判据 ⑥ 就是抓这个的） |
+| CI 里新鲜度检查**必假红** | actions/checkout 默认 fetch-depth=1，`git diff <报告 sha>..HEAD` 拿不到祖先提交 | 快 job checkout 设 `fetch-depth: 0`；检查器另识别浅克隆并提示 `git fetch --unshallow`（免得人去改报告） |
 | `evalset/report-*.md` 里的数**复现不出来**（跑一次就 TypeError） | 脚本调 `svc.chat(req)`，而 `chat()` 自 2026-10-13 起是 FastAPI 端点（签名要两个参数）⇒ 整个 `run_eval.py` 一跑就崩；**CI 没跑过它**，所以屏幕上看不出来 | 改调 `handle_chat()`（service.py 给"直连管道"留的入口）；已补回归用例 `test_run_eval_uses_handle_chat`，把入口改回去必红 |
 
 ## 7. 常用命令
