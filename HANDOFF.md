@@ -146,6 +146,7 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 | CI 快 job `ModuleNotFoundError: yaml` | 该 job 只装 pytest+redis，而 `check_test_counts.py` 要解析 ci.yml | 已加 `pyyaml` 到该 job 的 pip install |
 | CI 慢 job 15 个用例 pydantic 报 "DEEPSEEK_API_KEY must be set" | 这些用例会构造真 `ChatDeepSeek`，构造即要求 key | 已给慢 job 配**假 key**（真调用会 401，CI 里仍无真密钥） |
 | 本地每跑一次 pytest 就扣一次 API 费用 | `test_cache_is_on_by_default_with_rollback_switch` **真的联网** | 已用 monkeypatch 把 `_invoke_llm` 换成固定返回 |
+| 本机 `pytest` 里「扫描版 PDF 必须报错」变红，CI 绿 | 本机装了 **docling**（2026-10-23 装，`requirements.txt` 里**没有**它），`_read_pdf` 的 `auto` 分支回退到版面解析、真解析出正文 | 不要把测试 `skipif` 掉（那会让不变量在有后端的机器上永久消失）⇒ **按环境分派断言**：无后端必须抛 `ParseError`；有后端要么给非空文本、要么明确报错，**不许静默空**。可选依赖声明见 `requirements-optional.txt` |
 | 中文输出在管道里变乱码 | GBK 管道 | 脚本已 `sys.stdout.reconfigure(encoding="utf-8", errors="replace")` |
 | 新鲜度检查一上线，**每份报告都 STALE** | 规格写的「报告头 sha == HEAD」对**已入库**报告走不通：报告在 HEAD=X 生成、作为新提交 C 入库后 HEAD=C≠X | 改判据为「sha 相同 **或**（是祖先 **且** `git diff sha..HEAD` 里没有影响结果的文件）」。排除清单是**排除式**：清单外一律算影响 ⇒ 宁可误报 |
 | 指纹来源坏掉时，检查器**判 FRESH** | `capture()` 返回空 ⇒ 当前语料哈希是空串，而 `"abc".startswith("")` 恒真 ⇒ 「语料没变」凭空成真 | 拿不到 docs/kb 或 docs/inbox 的当前哈希时，一律判 `UNVERIFIABLE`（自测判据 ⑥ 就是抓这个的） |
