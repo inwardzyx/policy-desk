@@ -10,9 +10,11 @@
 ```text
 这是什么    一个叫「制度问答台」的项目：企业/学校制度文档的问答系统，答案带原文出处、答不出就拒答。
              三层架构：Vue3 前端 → Spring Boot 业务层 → Python 算法层。
-它现在在哪  代码全做完（M2–M7）、两个仓库公开且 CI 全绿、简历三版已出、录像脚本已写。
+它现在在哪  代码全做完（M2–M7）、两个仓库公开且 CI 全绿、简历三版已出、录像脚本已写、
+             评测基线已出（promptfoo，held-out 105 题，离线/在线两份分数）。
              卡在「投递」：用户已投 200 份中小厂实习，0 面试。
-下一步该做  ① 用 promptfoo 跑评测基线（半天）② 自研配对门禁 + 一致性 κ ③ 改投递策略并恢复投递
+下一步该做  ② 自研配对门禁 + 一致性 κ ③ 改投递策略并恢复投递
+             （① 用 promptfoo 跑基线 2026-11-11 已完成，产物 `_review_rag-cs/eval/reports/`）
 ```
 
 ## 1. 用户是谁（决定"什么算有用"）
@@ -38,6 +40,7 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
   service.py            FastAPI 单进程服务（检索/精排/生成/拒答/审计）
   kb/                   loader / chunking / runstate / attribution / loopgate
   evalset/              评测集 + 报告产物（ARTIFACTS 单里登记的才算）
+  eval/                 promptfoo 评测壳（held-out 105 题基线；入口 eval/README.md）
   scripts/              24 个变异脚本、各类检查器、评测运行器
   scripts/hooks/        pre-commit（数字对账）、pre-push（6 道检查）
 ```
@@ -55,6 +58,7 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 | 部署 | compose 五容器 healthy；经 nginx 登录/问答/上传/删除全通；问答 ≈4.0s |
 | CI | 两个仓库均绿（policy-desk 3 个 job、campus-policy-rag 3 个 job） |
 | 算法层 | 462 passed / 27 skipped（27 条 skip 全是"本机无 Redis"） |
+| 评测基线（held-out 105 题） | `eval/reports/BASELINE-offline.md`（30/44 · 42/44 · 12/61）+ `BASELINE-online.md`（40/44 · 42/44 · 41/61）；promptfoo 与 `run_eval.py` 同刻逐项一致（`summarize.py --compare`） |
 | 简历 | `docs/resume-final.pdf`（投递）+ `resume-v2-ai-eval.pdf`（技术面）+ PNG/JPG |
 
 ## 4. 已经做过的关键决定（**别重新讨论**）
@@ -71,11 +75,18 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 
 | # | 事项 | 判据 |
 |---|---|---|
-| 1 | 用 promptfoo 把 105 题跑出基线 | 本地出一条分数，能对比后续改动 |
+| 1 | ✅ 用 promptfoo 把 105 题跑出基线（2026-11-11） | 两份分数已落盘 `eval/reports/BASELINE-offline.md` / `BASELINE-online.md`；`summarize.py --compare` 与 `run_eval.py` 同刻逐项一致，且把对数改坏会红（变异用例验过） |
 | 2 | 自研 `eval/gate.py`（配对 McNemar）+ `eval/agreement.py`（人机 κ） | 故意把指标改坏 → 门禁必红；样本 <20 → 拒绝输出 κ |
 | 3 | 写 `DECISIONS.md`：为什么用现成工具 + 哪三块必须自研 | 一页，能直接当面试材料 |
 | 4 | 恢复投递（BOSS 直聊，话术见 `docs/boss-greeting.md`） | 一周投 75–100 条，统计回复率 |
 | 5 | 等用户提供 **10 个投过的 JD** 做匹配诊断 | 输出"白投了多少个"的结论 |
+
+> ⚠️ 做第 1 项时顺带发现：`evalset/report-vector-heldout.md`（落款 2026-10-10）里的数**已经复现不出来**
+> —— 同一套 105 题，旧报告 Recall@5 35/44 / 拒答 9/61，今天同一份代码是 30/44 / 12/61
+> （`report-rerank-heldout.md` 同样有偏移）。成因未逐条定位（没做 `git bisect`），**只报事实不做归因**。
+> ⇒ README 里引它们的那些数因此过期；建议在做第 2/3 项时一并处理，别单独去手改数字。
+> 另外 `evalset/run_eval.py` 原来是坏的（调了 FastAPI 端点 `chat()`，一跑就 TypeError），
+> 已修 + 补了回归用例 —— 否则"能不能复算"这件事本身就是假的。
 
 ## 6. 坑清单（**这一节最重要，全部真实踩过**）
 
@@ -128,6 +139,7 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 | CI 慢 job 15 个用例 pydantic 报 "DEEPSEEK_API_KEY must be set" | 这些用例会构造真 `ChatDeepSeek`，构造即要求 key | 已给慢 job 配**假 key**（真调用会 401，CI 里仍无真密钥） |
 | 本地每跑一次 pytest 就扣一次 API 费用 | `test_cache_is_on_by_default_with_rollback_switch` **真的联网** | 已用 monkeypatch 把 `_invoke_llm` 换成固定返回 |
 | 中文输出在管道里变乱码 | GBK 管道 | 脚本已 `sys.stdout.reconfigure(encoding="utf-8", errors="replace")` |
+| `evalset/report-*.md` 里的数**复现不出来**（跑一次就 TypeError） | 脚本调 `svc.chat(req)`，而 `chat()` 自 2026-10-13 起是 FastAPI 端点（签名要两个参数）⇒ 整个 `run_eval.py` 一跑就崩；**CI 没跑过它**，所以屏幕上看不出来 | 改调 `handle_chat()`（service.py 给"直连管道"留的入口）；已补回归用例 `test_run_eval_uses_handle_chat`，把入口改回去必红 |
 
 ## 7. 常用命令
 
