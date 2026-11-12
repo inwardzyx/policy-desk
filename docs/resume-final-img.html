@@ -4,9 +4,7 @@
 <meta charset="utf-8" />
 <title>周语昕 · 简历</title>
 <style>
-  html { background: #fff; }
-  body { width: 210mm; min-height: 297mm; padding: 11mm 12mm; margin: 0 auto; background: #fff; }
-  @page { size: A4; margin: 0; }
+  @page { size: A4; margin: 11mm 12mm; }
 
   :root { --ink: #1b1b1b; --muted: #5b5b5b; --line: #dcdcdc; --accent: #1f4e79; }
 
@@ -15,7 +13,7 @@
   body {
     margin: 0; color: var(--ink);
     font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
-    font-size: 10pt; line-height: 1.46;
+    font-size: 9.7pt; line-height: 1.42;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
 
@@ -56,6 +54,7 @@
 
   li, h3 { break-inside: avoid; }
   a { color: var(--accent); text-decoration: none; }
+  body { width: 210mm; min-height: 297mm; padding: 11mm 12mm; margin: 0 auto; background: #fff; }
 </style>
 </head>
 <body>
@@ -86,7 +85,8 @@
   <div>检索问答（向量 + BM25 融合 + LLM 精排）、拒答策略、DeepSeek 接入；会写 MCP server（手写 JSON-RPC 协议）</div>
 
   <div class="k">测试与质量</div>
-  <div>pytest / JUnit / Vitest 写单测；用<b>变异测试</b>验证「判据在坏情况下会不会红」；GitHub Actions 三 job 持续跑</div>
+  <div>pytest / JUnit / Vitest；<b>105 题独立评测集 + exact McNemar 配对显著性</b>；先量<b>噪声地板</b>再谈差异；
+    用<b>变异测试</b>证明「判据在坏情况下会红」；报告带<b>运行指纹</b>（代码 / 语料 / 依赖），GitHub Actions 三 job 持续跑</div>
 
   <div class="k">部署运维</div>
   <div>Docker Compose 编排五容器、Nginx 反代与上传限额、Cloudflare Tunnel 暴露公网</div>
@@ -113,7 +113,8 @@
     条款类问题命中 <b>2/15 → 13/15</b>（同 32 题配对对照，保留回滚开关，出问题可一键退回）。</li>
   <li><b>成本保护</b>：每日配额在<b>调用大模型之前</b>判定（Redis 计数 + 按天过期），超限返回 429 并给出重试时间，
     超额请求<b>不产生任何模型费用</b>；问答、拒答、超限三类决策全部落审计表。</li>
-  <li><b>质量判定</b>：改动是否真的变好，用调参集之外的 <b>105 题独立集 + 配对显著性检验</b>判定，不看单次分数的涨跌；
+  <li><b>质量判定（评测主线）</b>：改动是否真的变好，用调参集之外的 <b>105 题盲出独立集</b>（44 应答 + 61 拒答）判定 ——
+    先量<b>噪声地板</b>（同配置重跑 4 次：Recall@5 ±1、漏答 0、拒答 ±1，小于等于这个幅度不解释），再用 <b>exact McNemar 配对检验</b>；
     另有三条「看起来更好」的改法被同一门禁否决、<b>全部没上</b>。</li>
 </ul>
 
@@ -123,11 +124,13 @@
     解法是<b>只保留一处转换</b>，未知角色直接拒绝而不是降级 —— 宁可拒绝，也不要猜。</li>
   <li><b>模型故障不能被伪装成「库里没有」</b>：精排返回非法内容时如果按 0 分处理，会触发一条平平无奇的拒答，
     故障就被永久掩盖。改成抛错并记录原始返回，<b>只有分数确实低才拒答</b>，降级时在响应里标记。</li>
+  <li><b>「过期」要能算出来，不能靠重跑才发现</b>：README 与报告<b>一起</b>过期时，数字对账器仍然绿（一致 ≠ 正确）——
+    改成逐份报告比 git sha、语料哈希、依赖与 PDF 后端，并区分「报告过期」（合法）与「<b>引用</b>过期报告」（报红）。</li>
 </ul>
 
 <div class="lab">项目成果</div>
 <ul>
-  <li><b>63 条后端测试 + 4 条前端测试</b>，GitHub 每次提交自动运行；五个容器一条命令起，公网可访问，一次问答约 <b>4 秒</b>。</li>
+  <li><b>63 条后端 + 4 条前端 + 473 条算法层测试</b>，GitHub 每次提交自动运行；五个容器一条命令起，公网可访问，一次问答约 <b>4 秒</b>。</li>
   <li>两个仓库公开、CI 全绿：
     <a href="https://github.com/inwardzyx/policy-desk">policy-desk</a>（后端 + 前端）·
     <a href="https://github.com/inwardzyx/campus-policy-rag">campus-policy-rag</a>（检索与生成）</li>
