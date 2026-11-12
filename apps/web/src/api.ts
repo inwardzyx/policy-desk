@@ -6,6 +6,8 @@
  * 表现是"这个页面总是 401"，而其它页面正常 —— 最难查的那种）。
  */
 
+import { parseSseFrames } from './agentTimeline'
+
 export interface Source {
   doc: string
   text: string
@@ -157,6 +159,56 @@ export function askAgent(question: string): Promise<AgentResult> {
     method: 'POST',
     body: JSON.stringify({ question }),
   })
+}
+
+/**
+ * agent 流式问答（SSE）。每收到一个事件调一次 `onEvent`。
+ *
+ * ★ 与 `askAgent` 的取舍：流式只用于**看过程**；判据仍然是 `agentTimeline.ts` 的
+ *   `applyEvent` + `verdictOf` —— 组件不解析模型的散文。
+ * ★ 401 在这里也要处理：`fetch` 不会自动帮我们清令牌（那是 `request()` 的活）。
+ */
+export async function askAgentStream(
+  question: string,
+  onEvent: (ev: Record<string, unknown>) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const headers = new Headers({ 'Content-Type': 'application/json' })
+  const token = getToken()
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+  const resp = await fetch('/api/agent/stream', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ question }),
+    signal,
+  })
+  if (resp.status === 401) {
+    setToken(null)
+    throw new ApiError(401, '登录已过期，请重新登录')
+  }
+  if (!resp.ok) {
+    let detail = `请求失败（${resp.status}）`
+    try {
+      const body = (await resp.json()) as { detail?: string }
+      detail = body.detail ?? detail
+    } catch {
+      // 非 JSON：保留状态码提示
+    }
+    throw new ApiError(resp.status, detail)
+  }
+  if (!resp.body) throw new ApiError(500, '流式响应为空（浏览器不支持 ReadableStream？）')
+
+  const reader = resp.body.getReader()
+  const decoder = new TextDecoder('utf-8')
+  let buffer = ''
+  for (;;) {
+    const { value, done } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const { events, rest } = parseSseFrames(buffer)
+    buffer = rest
+    for (const ev of events) onEvent(ev)
+  }
 }
 
 // ---------------------------------------------------------------- 文档

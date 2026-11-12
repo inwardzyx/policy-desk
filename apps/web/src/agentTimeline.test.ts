@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { stepTone, verdictOf, type AgentStep } from './agentTimeline'
+import { applyEvent, emptyState, parseSseFrames, stepTone, verdictOf, type AgentStep } from './agentTimeline'
 
 /**
  * 判据：**"没跑完"必须显示成没跑完**。
@@ -58,5 +58,49 @@ describe('stepTone', () => {
     expect(stepTone(failed(1))).toBe('error')
     expect(stepTone(hit(1))).toBe('ok')
     expect(stepTone({ ...hit(1), status: 'no_hit', n_src: 0 })).toBe('warn')
+  })
+})
+
+describe('applyEvent / parseSseFrames', () => {
+  it('tool_call + tool_result 合并成**一步**（不是两步）', () => {
+    let st = emptyState()
+    st = applyEvent(st, { type: 'tool_call', i: 1, tool: 'search_policy', args: { query: 'x' } })
+    st = applyEvent(st, { type: 'tool_result', i: 1, tool_ms: 12, status: 'hit', n_src: 3, error: null })
+    expect(st.steps).toHaveLength(1)
+    expect(st.steps[0].n_src).toBe(3)
+    expect(st.steps[0].status).toBe('hit')
+  })
+
+  it('result 帧决定"算不算成功"（缺了它前端只能猜成功）', () => {
+    let st = emptyState()
+    st = applyEvent(st, { type: 'tool_call', i: 1, tool: 'ask_policy', args: {} })
+    st = applyEvent(st, { type: 'result', stopped_reason: 'gate_refused', refused: true,
+                          answer: '我不编。', tokens: 700, rounds: 1 })
+    expect(verdictOf(st.steps, st.stopped, st.refused).label).toContain('拒答')
+  })
+
+  it('流断在没有 result 的地方 ⇒ 状态未知，不许当成功', () => {
+    let st = emptyState()
+    st = applyEvent(st, { type: 'tool_call', i: 1, tool: 'ask_policy', args: {} })
+    expect(st.stopped).toBe('')
+    expect(verdictOf(st.steps, st.stopped || 'streaming', st.refused).tone).not.toBe('ok')
+  })
+
+  it('SSE 分片：留残余、不丢被切开的帧', () => {
+    const first = parseSseFrames('data: {"type":"plan","round":1}\n\ndata: {"type":"tool_ca')
+    expect(first.events).toHaveLength(1)
+    expect(first.events[0].type).toBe('plan')
+    expect(first.rest.startsWith('data: {"type":"tool_ca')).toBe(true)
+
+    const second = parseSseFrames(first.rest + 'll","i":1}\n\n')
+    expect(second.events).toHaveLength(1)
+    expect(second.events[0].i).toBe(1)
+    expect(second.rest).toBe('')
+  })
+
+  it('坏帧只丢自己，不炸整条流', () => {
+    const r = parseSseFrames('data: {not json}\n\ndata: {"type":"answer","text":"ok"}\n\n')
+    expect(r.events).toHaveLength(1)
+    expect(r.events[0].type).toBe('answer')
   })
 })

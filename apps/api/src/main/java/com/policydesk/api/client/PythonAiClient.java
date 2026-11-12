@@ -84,6 +84,30 @@ public class PythonAiClient {
         }
     }
 
+    /**
+     * agent 流式问答：把 Python 的 SSE 字节流**原样**交给调用方（不解析、不重排）。
+     *
+     * <p>★ 为什么 Java 不解析事件：事件的语义（plan / tool_call / tool_result / answer /
+     * done）只在一处定义 —— `agent/loop.py` 与 `service.py` 的 `_agent_events`。
+     * Java 一旦开始解析，就多了第二套"什么算一步"的判据，两边迟早分叉。
+     * <p>★ 为什么用 {@code exchange} 而不是 {@code retrieve}：后者会把整段 body 读进内存，
+     * 那就不是流式了（用户会等 20 秒才看到第一行）。
+     */
+    public java.io.InputStream streamAgent(String question, List<String> acl) {
+        return http.post()
+                .uri("/agent/stream")
+                .header("X-Internal-Token", internalToken)
+                .header("X-Auth-Roles", String.join(",", acl))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new Dto.AgentRequest(question, null, null))
+                .exchange((req, resp) -> {
+                    if (!resp.getStatusCode().is2xxSuccessful()) {
+                        throw new PythonAiException(resp.getStatusCode().value(), "", null);
+                    }
+                    return resp.getBody();
+                });
+    }
+
     /** 探活：给健康检查用（打 Python 的 {@code /health}）。 */
     public Dto.Health health() {
         try {

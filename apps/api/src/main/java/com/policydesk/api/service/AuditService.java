@@ -46,6 +46,12 @@ public class AuditService {
          * 事后就查不出"哪一天开始退化的" —— 而这正是评测岗最常被问的那个问题。
          */
         public static final String DEGRADED = "degraded";
+        /**
+         * 流式路径：Java 只转发 SSE 字节，**不知道**循环最后是 done 还是 gate_refused。
+         *
+         * <p>★ 宁可记粗一档，也不把不知道的事情记成 "answered"。
+         */
+        public static final String STREAMED = "streamed";
 
         private Decision() {
         }

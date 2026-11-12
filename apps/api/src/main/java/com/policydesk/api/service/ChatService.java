@@ -104,6 +104,32 @@ public class ChatService {
     }
 
 
+    /**
+     * 流式 agent 问答的**前置**动作：配额定下来、错误留痕，然后返回 SSE 字节流。
+     *
+     * <p>★ 为什么审计只记一档 `streamed`：Java 不解析 SSE（判据只在 Python 一处），
+     * 所以它**不知道**这次循环最后是 done 还是 gate_refused。硬编一个 "answered"
+     * 就是撒谎。宁可记粗一档，也不记假一档。
+     * <p>★ 配额仍然在**开流之前**扣：一次 agent 可能烧掉单步两倍的 token。
+     */
+    public java.io.InputStream agentStream(long userId, List<String> acl, String question) {
+        QuotaService.Decision q = quota.consume(userId);
+        if (!q.allowed()) {
+            audit.record(userId, question, null, AuditService.Decision.QUOTA_DENIED,
+                    null, null, null);
+            throw new QuotaExceeded(q);
+        }
+        try {
+            java.io.InputStream in = ai.streamAgent(question, acl);
+            audit.record(userId, question, null, AuditService.Decision.STREAMED, null, null, null);
+            return in;
+        } catch (PythonAiClient.PythonAiException e) {
+            audit.record(userId, question, null, AuditService.Decision.UPSTREAM_ERROR,
+                    null, null, null);
+            throw e;
+        }
+    }
+
     private String traceIdOf(Dto.ChatResponse r) {
         return r.context() == null ? null : r.context().trace_id();
     }

@@ -71,6 +71,33 @@ public class ChatController {
     }
 
     /**
+     * agent 流式问答（SSE 穿透）。
+     *
+     * <p>★ 职责只有一个：**把字节搬过去**。事件的语义（plan/tool_call/tool_result/answer）
+     * 只在 Python 一处定义；Java 解析 = 第二套判据。
+     * <p>★ `StreamingResponseBody` 跑在 MVC 的异步线程里，所以 `try-with-resources` 必须在
+     * lambda 内部 —— 提前关流会让浏览器收到半截 SSE（而且看起来像"模型卡住了"）。
+     */
+    @PostMapping("/agent/stream")
+    public org.springframework.http.ResponseEntity<org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody>
+            agentStream(@RequestBody @Valid AgentBody body, HttpServletRequest request) {
+        JwtService.Principal p = (JwtService.Principal) request.getAttribute(JwtAuthFilter.ATTR_PRINCIPAL);
+        long userId = p != null ? userIdOf(p) : demoUserId();
+        java.io.InputStream in = chat.agentStream(userId, resolveAcl(request, p), body.question());
+        org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody stream = out -> {
+            try (in) {
+                in.transferTo(out);
+                out.flush();
+            }
+        };
+        return org.springframework.http.ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.TEXT_EVENT_STREAM)
+                .header("Cache-Control", "no-cache")
+                .header("X-Accel-Buffering", "no")
+                .body(stream);
+    }
+
+    /**
      * 解析这次请求的 ACL。
      *
      * <p>顺序有讲究：**已认证 > 联调头 > 拒绝**。
