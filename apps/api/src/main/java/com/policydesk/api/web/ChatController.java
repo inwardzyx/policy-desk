@@ -54,6 +54,23 @@ public class ChatController {
     }
 
     /**
+     * agent 问答（非流式）。与 {@code /chat} 共用同一套身份与 ACL 解析 —— **不新造一套**。
+     *
+     * <p>★ 请求体只有 `question`：`max_rounds` / `budget_tokens` 是循环参数，
+     * 属于"运维旋钮"，不给浏览器传（否则前端一改就能让一次问答烧掉几万 token）。
+     * 要调就改 Python 侧默认值或环境变量，那是有审计的路径。
+     */
+    public record AgentBody(@NotBlank String question) {
+    }
+
+    @PostMapping("/agent")
+    public Dto.AgentResponse agent(@RequestBody @Valid AgentBody body, HttpServletRequest request) {
+        JwtService.Principal p = (JwtService.Principal) request.getAttribute(JwtAuthFilter.ATTR_PRINCIPAL);
+        long userId = p != null ? userIdOf(p) : demoUserId();
+        return chat.agent(userId, resolveAcl(request, p), body.question());
+    }
+
+    /**
      * 解析这次请求的 ACL。
      *
      * <p>顺序有讲究：**已认证 > 联调头 > 拒绝**。

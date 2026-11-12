@@ -20,6 +20,10 @@ public final class Dto {
     public record ChatRequest(String question, String namespace, String sessionId) {
     }
 
+    /** agent 的请求。**故意比 ChatRequest 小**：检索参数由模型决定，不由调用方决定。 */
+    public record AgentRequest(String question, Integer max_rounds, Integer budget_tokens) {
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Source(String doc, String text, Double score, Integer rerank_score, String reason) {
     }
@@ -42,6 +46,44 @@ public final class Dto {
             boolean rerank_used,
             boolean knowledge_hit,
             Context context
+    ) {
+    }
+
+    /**
+     * agent 的一步工具调用。
+     *
+     * <p>★ `status` 三态：`hit` / `no_hit` / `null`（解析不了**不猜**）。
+     * 前端把它画成绿/黄/灰三种点，而不是"没有就是成功"。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record AgentStep(
+            int i,
+            String tool,
+            java.util.Map<String, Object> args,
+            int tool_ms,
+            String status,
+            int n_src,
+            String error
+    ) {
+    }
+
+    /**
+     * agent 的响应。
+     *
+     * <p>★ `stopped_reason` 是**必读字段**，不是装饰：`done` 之外的一切都意味着
+     * "这段答案不是完整跑完的产物"（撞上限 / 超预算 / 没取证 / 工具失败）。
+     * Java 不解释它，原样带给前端 —— 语义只在一处定义（Python 的 `agent/loop.py`）。
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record AgentResponse(
+            String answer,
+            List<Source> sources,
+            List<AgentStep> steps,
+            String stopped_reason,
+            int rounds,
+            int tokens,
+            boolean refused,
+            int took_ms
     ) {
     }
 

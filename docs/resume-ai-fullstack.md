@@ -39,7 +39,7 @@
   第 3 次超限返回 429 + `Retry-After`，不产生任何 token 费用。
 - **审计**：每次问答落库，问题只存 SHA-256（可比对频次、还原不出原文），
   记录 answered / refused / quota_denied / upstream_error 四类决策，`trace_id` 与算法服务对齐。
-- **质量与交付**：63 条后端测试（H2 内存库，不依赖本机 MySQL）+ 4 条前端测试 + GitHub Actions 三 job；
+- **质量与交付**：63 条后端测试（H2 内存库，不依赖本机 MySQL）+ 11 条前端测试 + GitHub Actions 三 job；
   Actuator 健康检查含上游探针（AI 不可用时整体 DOWN，实测 503）；
   Docker Compose 编排 web / api / ai / mysql / redis 五容器（全 healthy），
   Nginx 上传上限与后端 20MB 对齐；公网经 Tunnel 可访问，问答端到端 ≈4.0s。
@@ -67,7 +67,7 @@
 | 简历里写的 | 怎么复算 |
 |---|---|
 | 63 条后端测试 | `mvn -f apps/api/pom.xml test` |
-| 4 条前端测试 / 构建 | `cd apps/web && npm test && npm run build` |
+| 11 条前端测试 / 构建 | `cd apps/web && npm test && npm run build` |
 | 五容器 healthy | `cd deploy && docker compose ps` |
 | hr 命中 / employee 拒答 | `scripts/demo-seed.ps1` 后用两账号问「加班费怎么算？」 |
 | 429 + Retry-After | `QUOTA_DAILY_LIMIT=2` 后连问三次 |

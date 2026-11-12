@@ -39,6 +39,13 @@ public class AuditService {
         public static final String REFUSED = "refused";
         public static final String QUOTA_DENIED = "quota_denied";
         public static final String UPSTREAM_ERROR = "upstream_error";
+        /**
+         * agent 跑完但**没跑完整**：撞轮数上限 / 超 token 预算 / 没取证 / 工具失败。
+         *
+         * <p>★ 单独一档而不是并进 {@link #ANSWERED}：把"跑完了"和"跑残了"记成同一档，
+         * 事后就查不出"哪一天开始退化的" —— 而这正是评测岗最常被问的那个问题。
+         */
+        public static final String DEGRADED = "degraded";
 
         private Decision() {
         }

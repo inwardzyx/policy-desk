@@ -22,6 +22,38 @@ export interface ChatResult {
   context?: { trace_id?: string } | null
 }
 
+/**
+ * agent 的一步工具调用。字段名照抄 Python 的 snake_case（与 ChatResult.took_ms 同一口径）。
+ *
+ * ★ `status` 三态：`hit` / `no_hit` / `null`（解析不了不猜）。
+ */
+export interface AgentStep {
+  i: number
+  tool: string
+  args: Record<string, unknown>
+  tool_ms: number
+  status: string | null
+  n_src: number
+  error: string | null
+}
+
+/**
+ * agent 的响应。
+ *
+ * ★ `stopped_reason` **必读**：`done` 之外的一切都表示"这段答案不是完整跑完的产物"。
+ *   前端把它交给 `agentTimeline.ts::verdictOf` 判色调 —— 判据只写一处。
+ */
+export interface AgentResult {
+  answer: string
+  sources: Source[]
+  steps: AgentStep[]
+  stopped_reason: string
+  rounds: number
+  tokens: number
+  refused: boolean
+  took_ms: number
+}
+
 export interface LoginResult {
   token: string
   expiresAt: string
@@ -111,6 +143,19 @@ export function ask(question: string, namespace?: string): Promise<ChatResult> {
   return request<ChatResult>('/api/chat', {
     method: 'POST',
     body: JSON.stringify({ question, namespace: namespace || null }),
+  })
+}
+
+/**
+ * agent 模式问一句（非流式）。
+ *
+ * ★ 开关在**后端**（Python 的 `AGENT_ENABLED`）：没启用时这里会拿到 404，
+ *   前端据此提示「agent 未启用」而不是假装成功 —— 见 ChatView 的错误分支。
+ */
+export function askAgent(question: string): Promise<AgentResult> {
+  return request<AgentResult>('/api/agent', {
+    method: 'POST',
+    body: JSON.stringify({ question }),
   })
 }
 

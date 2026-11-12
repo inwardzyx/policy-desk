@@ -67,7 +67,43 @@ public class ChatService {
         }
     }
 
-    /** 从 Python 的响应里取 trace_id（namespace 路径才有；拿不到就记 null，不补假值）。 */
+    /**
+     * 走 agent 循环问一次。与 {@link #ask} 同一套顺序（配额 → 调 AI → 审计），差别只有两条：
+     *
+     * <p>1. **审计的 decision 多一档**：`stopped_reason != done` 说明这段答案不是完整跑完的产物
+     *    （撞上限 / 超预算 / 没取证 / 工具失败），记 `DEGRADED` 而不是 `ANSWERED`。
+     *    把"跑完了"和"跑残了"记成同一档，事后就查不出"是哪天开始退化的"。
+     * <p>2. 配额照旧**在调用模型之前**判定：agent 一次可能烧掉单步两倍的 token，
+     *    更不能先跑后扣。
+     */
+    public Dto.AgentResponse agent(long userId, List<String> acl, String question) {
+        QuotaService.Decision q = quota.consume(userId);
+        if (!q.allowed()) {
+            audit.record(userId, question, null, AuditService.Decision.QUOTA_DENIED,
+                    null, null, null);
+            throw new QuotaExceeded(q);
+        }
+        try {
+            Dto.AgentResponse r = ai.agent(question, acl);
+            String decision;   // ★ Decision 里是一组 String 常量（不是枚举）
+            if (r.refused()) {
+                decision = AuditService.Decision.REFUSED;
+            } else if (r.stopped_reason() != null && !"done".equals(r.stopped_reason())) {
+                decision = AuditService.Decision.DEGRADED;
+            } else {
+                decision = AuditService.Decision.ANSWERED;
+            }
+            audit.record(userId, question, null, decision,
+                    r.sources() == null ? 0 : r.sources().size(), r.took_ms(), null);
+            return r;
+        } catch (PythonAiClient.PythonAiException e) {
+            audit.record(userId, question, null, AuditService.Decision.UPSTREAM_ERROR,
+                    null, null, null);
+            throw e;
+        }
+    }
+
+
     private String traceIdOf(Dto.ChatResponse r) {
         return r.context() == null ? null : r.context().trace_id();
     }

@@ -54,7 +54,7 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 
 | 事项 | 证据 |
 |---|---|
-| 三层架构 + 权限 + 配额 + 审计 | 63 条 Java 测试、4 条前端测试，`mvn test` / `npm test` 可复算 |
+| 三层架构 + 权限 + 配额 + 审计 | 63 条 Java 测试、11 条前端测试，`mvn test` / `npm test` 可复算 |
 | 端到端权限对比 | 同问题：hr 命中薪酬条款并带引用，employee 拒答；employee 问年假能答 |
 | 配额 | 上限 2 时第 3 次 429 + `Retry-After`，审计留下 `quota_denied` |
 | 部署 | compose 五容器 healthy；经 nginx 登录/问答/上传/删除全通；问答 ≈4.0s |

@@ -58,6 +58,32 @@ public class PythonAiClient {
         }
     }
 
+    /**
+     * 走 agent 循环问一次（非流式）。
+     *
+     * <p>★ 与 {@link #chat} 的两个差别，都是有意的：
+     * <ul>
+     *   <li>打 {@code /agent} 而不是 {@code /internal/chat}：agent 循环住在 Python 侧，
+     *       Java 不复制它的判断（重写 = 第二套行为）；</li>
+     *   <li>**照旧带 {@code X-Auth-Roles}**：agent 自己决定调哪个工具，但权限不是模型的事 ——
+     *       漏了这个头，检索就不按 ACL 过滤，而且不会报错（最坏的那种失败）。</li>
+     * </ul>
+     */
+    public Dto.AgentResponse agent(String question, List<String> acl) {
+        try {
+            return http.post()
+                    .uri("/agent")
+                    .header("X-Internal-Token", internalToken)
+                    .header("X-Auth-Roles", String.join(",", acl))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new Dto.AgentRequest(question, null, null))
+                    .retrieve()
+                    .body(Dto.AgentResponse.class);
+        } catch (RestClientResponseException e) {
+            throw new PythonAiException(e.getStatusCode().value(), e.getResponseBodyAsString(), e);
+        }
+    }
+
     /** 探活：给健康检查用（打 Python 的 {@code /health}）。 */
     public Dto.Health health() {
         try {
