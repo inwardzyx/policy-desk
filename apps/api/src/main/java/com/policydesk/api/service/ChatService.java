@@ -112,22 +112,29 @@ public class ChatService {
      * 就是撒谎。宁可记粗一档，也不记假一档。
      * <p>★ 配额仍然在**开流之前**扣：一次 agent 可能烧掉单步两倍的 token。
      */
-    public java.io.InputStream agentStream(long userId, List<String> acl, String question) {
+    public java.util.function.Supplier<java.io.InputStream> agentStream(long userId, List<String> acl,
+                                                                        String question) {
         QuotaService.Decision q = quota.consume(userId);
         if (!q.allowed()) {
             audit.record(userId, question, null, AuditService.Decision.QUOTA_DENIED,
                     null, null, null);
             throw new QuotaExceeded(q);
         }
-        try {
-            java.io.InputStream in = ai.streamAgent(question, acl);
-            audit.record(userId, question, null, AuditService.Decision.STREAMED, null, null, null);
-            return in;
-        } catch (PythonAiClient.PythonAiException e) {
-            audit.record(userId, question, null, AuditService.Decision.UPSTREAM_ERROR,
-                    null, null, null);
-            throw e;
-        }
+        // ★ 返回的是 Supplier：上游连接必须在**流式线程里**才打开。
+        //   第一版在请求线程里先 open 再交给 StreamingResponseBody，实测报
+        //   `java.io.IOException: stream is closed` —— HttpURLConnection 的输入流
+        //   跟着请求线程的生命周期被关掉了（2026-11-16 现场踩到）。
+        return () -> {
+            try {
+                java.io.InputStream in = ai.streamAgent(question, acl);
+                audit.record(userId, question, null, AuditService.Decision.STREAMED, null, null, null);
+                return in;
+            } catch (PythonAiClient.PythonAiException e) {
+                audit.record(userId, question, null, AuditService.Decision.UPSTREAM_ERROR,
+                        null, null, null);
+                throw e;
+            }
+        };
     }
 
     private String traceIdOf(Dto.ChatResponse r) {

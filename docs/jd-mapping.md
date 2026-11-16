@@ -22,7 +22,7 @@
 | Java / Spring Boot | 技能 ② | ✅ JWT / 配额 / 审计 / 限流 |
 | TypeScript / Vue | 技能 ③ | ✅ 时间线 + 16 条单测 |
 | Docker / 部署 | 技能 ⑤ | ✅ compose 五容器 + Nginx + Actions |
-| 作品可展示 / 开源 | 头部 GitHub 行 | ⚠️ 两个仓库公开，但**没有一个稳定的在线 demo 地址** |
+| 作品可展示 / 开源 | 头部 GitHub 行 | ⚠️ 两个仓库公开；**有截图**（`docs/images/agent-timeline.png`），仍缺一个稳定的在线地址 |
 
 ## 二、简历改了什么（相对上一版）
 

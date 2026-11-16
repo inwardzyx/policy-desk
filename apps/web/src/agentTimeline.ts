@@ -84,10 +84,12 @@ export interface AgentStreamState {
   tokens: number
   stopped: string
   refused: boolean
+  /** 端到端耗时（前端自己量的：从提交到收到 result 帧）。0 表示还没结束。 */
+  tookMs: number
 }
 
 export function emptyState(): AgentStreamState {
-  return { steps: [], answer: '', rounds: 0, tokens: 0, stopped: '', refused: false }
+  return { steps: [], answer: '', rounds: 0, tokens: 0, stopped: '', refused: false, tookMs: 0 }
 }
 
 /**

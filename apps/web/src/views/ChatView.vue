@@ -27,7 +27,7 @@ const liveResult = computed<AgentResult | null>(() => {
     rounds: s.rounds,
     tokens: s.tokens,
     refused: s.refused,
-    took_ms: 0,
+    took_ms: s.tookMs,
   }
 })
 
@@ -42,10 +42,12 @@ async function submit() {
   try {
     if (agentMode.value) {
       if (streamMode.value) {
+        const t0 = performance.now()
         let state = emptyState()
         live.value = state
         await askAgentStream(q, (ev) => {
           state = applyEvent(state, ev as AgentEvent)
+          state.tookMs = Math.round(performance.now() - t0)
           live.value = state
           if (ev.type === 'result' && Array.isArray(ev.sources)) {
             agentSources.value = ev.sources as AgentResult['sources']
@@ -55,7 +57,8 @@ async function submit() {
       } else {
         const r = await askAgent(q)
         live.value = { steps: r.steps, answer: r.answer, rounds: r.rounds,
-                       tokens: r.tokens, stopped: r.stopped_reason, refused: r.refused }
+                       tokens: r.tokens, stopped: r.stopped_reason, refused: r.refused,
+                       tookMs: r.took_ms }
         agentSources.value = r.sources
       }
     } else {
@@ -142,7 +145,9 @@ async function submit() {
 </template>
 
 <style scoped>
-.actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 8px; }
-.toggles { display: flex; flex-direction: column; gap: 4px; }
-.toggle { font-size: 13px; color: #555; display: flex; align-items: center; gap: 6px; }
+.ask { display: flex; flex-direction: column; gap: 10px; }
+.ask textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+.actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.toggles { display: flex; gap: 14px; flex-wrap: wrap; }
+.toggle { font-size: 13px; color: #555; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 </style>

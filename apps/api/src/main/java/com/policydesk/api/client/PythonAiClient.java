@@ -25,10 +25,12 @@ public class PythonAiClient {
 
     private final RestClient http;
     private final String internalToken;
+    private final String baseUrl;
 
     public PythonAiClient(RestClient pythonAiRestClient, PythonAiProperties props) {
         this.http = pythonAiRestClient;
         this.internalToken = props.internalToken();
+        this.baseUrl = props.baseUrl();
     }
 
     /**
@@ -87,26 +89,48 @@ public class PythonAiClient {
     /**
      * agent 流式问答：把 Python 的 SSE 字节流**原样**交给调用方（不解析、不重排）。
      *
-     * <p>★ 为什么 Java 不解析事件：事件的语义（plan / tool_call / tool_result / answer /
-     * done）只在一处定义 —— `agent/loop.py` 与 `service.py` 的 `_agent_events`。
-     * Java 一旦开始解析，就多了第二套"什么算一步"的判据，两边迟早分叉。
-     * <p>★ 为什么用 {@code exchange} 而不是 {@code retrieve}：后者会把整段 body 读进内存，
-     * 那就不是流式了（用户会等 20 秒才看到第一行）。
+     * <p>★ 为什么不用 `RestClient.exchange`：它回调里拿到的 `InputStream` **一出版就关**
+     * （实测 `java.io.IOException: stream is closed`，两次），因为它属于那一次请求的作用域。
+     * 用 JDK 的 `HttpClient.send(..., BodyHandlers.ofInputStream())`：返回的流是**活的**，
+     * 可以交给另一个线程慢慢读 —— 这才是 SSE 穿透该用的东西。
+     * <p>★ 事件语义（plan / tool_call / tool_result / answer / done）只在 Python 一处定义，
+     * Java 不解析：多一套解析 = 多一套"什么算一步"的判据。
      */
     public java.io.InputStream streamAgent(String question, List<String> acl) {
-        return http.post()
-                .uri("/agent/stream")
-                .header("X-Internal-Token", internalToken)
-                .header("X-Auth-Roles", String.join(",", acl))
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(new Dto.AgentRequest(question, null, null))
-                .exchange((req, resp) -> {
-                    if (!resp.getStatusCode().is2xxSuccessful()) {
-                        throw new PythonAiException(resp.getStatusCode().value(), "", null);
-                    }
-                    return resp.getBody();
-                });
+        try {
+            String body = java.util.Objects.requireNonNull(
+                    new com.fasterxml.jackson.databind.ObjectMapper()
+                            .writeValueAsString(new Dto.AgentRequest(question, null, null)));
+            java.net.http.HttpRequest req = java.net.http.HttpRequest
+                    .newBuilder(java.net.URI.create(baseUrl + "/agent/stream"))
+                    .header("X-Internal-Token", internalToken)
+                    .header("X-Auth-Roles", String.join(",", acl))
+                    .header("Content-Type", "application/json")
+                    .timeout(java.time.Duration.ofSeconds(300))
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+            java.net.http.HttpResponse<java.io.InputStream> resp = STREAM_HTTP.send(
+                    req, java.net.http.HttpResponse.BodyHandlers.ofInputStream());
+            if (resp.statusCode() / 100 != 2) {
+                try (java.io.InputStream err = resp.body()) {
+                    String detail = new String(err.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                    throw new PythonAiException(resp.statusCode(), detail, null);
+                }
+            }
+            return resp.body();
+        } catch (java.io.IOException | InterruptedException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            throw new PythonAiException(504, e.toString(), e);
+        }
     }
+
+    /** 流式专用客户端：连接超时短、读超时长（SSE 会安静地等模型）。 */
+    private static final java.net.http.HttpClient STREAM_HTTP =
+            java.net.http.HttpClient.newBuilder()
+                    .connectTimeout(java.time.Duration.ofSeconds(5))
+                    .build();
 
     /** 探活：给健康检查用（打 Python 的 {@code /health}）。 */
     public Dto.Health health() {

@@ -83,9 +83,10 @@ public class ChatController {
             agentStream(@RequestBody @Valid AgentBody body, HttpServletRequest request) {
         JwtService.Principal p = (JwtService.Principal) request.getAttribute(JwtAuthFilter.ATTR_PRINCIPAL);
         long userId = p != null ? userIdOf(p) : demoUserId();
-        java.io.InputStream in = chat.agentStream(userId, resolveAcl(request, p), body.question());
+        java.util.function.Supplier<java.io.InputStream> open =
+                chat.agentStream(userId, resolveAcl(request, p), body.question());
         org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody stream = out -> {
-            try (in) {
+            try (java.io.InputStream in = open.get()) {          // ★ 连接在流式线程里打开
                 in.transferTo(out);
                 out.flush();
             }
