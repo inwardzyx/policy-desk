@@ -114,7 +114,8 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
       ③ policy-desk 的 `check_resume_numbers.py` 用 `--reporter=json` 取 vitest 计数
          （非 TTY 下解析不到 `Tests N passed`），且 `shell=True` 必须配字符串（配 list 在 POSIX
          上会把参数丢掉）；
-      ④ 结果：policy-desk CI 全绿（52235ed）；campus 三个 job 里慢 job 与容器 job 已绿。
+      ④ 结果（2026-11-16 17:50 实测）：**两仓 CI 全绿** —— campus `f90b737` 3/3（慢 job / 快 job / 容器 job）、policy-desk `59cc865` 3/3。
+         简历上「CI 均绿」已恢复，并以这两个 sha 为准。
 
 ## 5. 待办（按优先级）
 
