@@ -22,6 +22,11 @@
   .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
   .intent { font-size: 10.4pt; font-weight: 600; color: var(--accent); margin-bottom: 1.8mm; }
   .contact { font-size: 9.2pt; color: var(--muted); line-height: 1.7; }
+  .pitch { font-size: 9.6pt; margin: 0 0 1.6mm; padding-left: 2.2mm; border-left: 2.4px solid var(--accent); }
+  .result-first {
+    font-size: 9.2pt; margin: 0 0 1.4mm; padding: 1.4mm 2mm;
+    background: #f4f7fa; border-radius: 2px; line-height: 1.5;
+  }
   .photo { width: 23mm; height: 31mm; border: 1px solid var(--line); border-radius: 2px; object-fit: cover; flex: 0 0 auto; }
 
   h2 {
@@ -62,9 +67,14 @@
   <div>
     <h1>周语昕</h1>
     <div class="intent">求职意向：AI Agent 应用开发 / AI 应用开发（实习）</div>
+    <div class="pitch">
+      独立交付过一个能跑的 Agent 应用（多步工具调用 + 过程可见），
+      并用 <b>105 题独立评测</b>证明它没有退化。
+    </div>
     <div class="contact">
-      13022069636 ／ zyx167167@qq.com<br />
-      GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（两个仓库，CI 均绿，含可运行 demo）<br />
+      13022069636 ／ zyx167167@qq.com ／
+      GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（两个仓库，CI 均绿）<br />
+      <b>韩山师范学院</b> ｜ 软件工程（五年制专本衔接）｜ 2025–2030<br />
       到岗时间：<b>可立即到岗</b>，每周 4–5 天，可连续 6 个月
     </div>
   </div>
@@ -78,11 +88,9 @@
   <div><b>函数 / 工具调用</b>循环（plan → tool → observe）、<b>MCP</b>（JSON-RPC over stdio）、
     <b>上下文工程</b>（八层 + token 预算 + trace）、SSE 流式、LangGraph 对照实验</div>
 
-  <div class="k">后端</div>
-  <div>Python + FastAPI · Java 17 / Spring Boot 3 · MySQL 8 + Redis · JWT、<b>角色 → ACL 单向投影</b>、审计、异常与降级</div>
-
-  <div class="k">前端</div>
-  <div>Vue 3 + TypeScript + Vite：<b>SSE 时间线</b>（逐步耗时 / 命中数 / 失败标红）、流式渲染、路由守卫</div>
+  <div class="k">全栈交付</div>
+  <div>Python + FastAPI · Java 17 / Spring Boot 3 · MySQL 8 + Redis · Vue 3 + TypeScript ·
+    JWT、<b>角色 → ACL 单向投影</b>、审计、异常与降级</div>
 
   <div class="k">评测与质量</div>
   <div>105 题盲出独立集 · exact McNemar 配对检验 · 噪声地板 · 变异测试 · <b>判据版本</b>（改判分规则即让旧报告失效）</div>
@@ -94,6 +102,11 @@
 <h2>项目经历</h2>
 
 <h3>制度问答 Agent —— 多步检索 + 过程可见的问答系统<span class="role">（独立开发）</span><span class="when">2026.09 – 2026.11</span></h3>
+<div class="result-first">
+  gold 条款命中 <b>42/44</b> · 拒答 <b>40/61</b> · 与同刻 <code>/chat</code> 打平（1 胜 2 负，均在噪声带内）<br />
+  一次问答 <b>5 秒</b>、<b>2 步</b>工具调用 · <b>105 题</b>盲出独立集 ·
+  <b>63 条后端 + 16 条前端 + 532 条算法层测试</b>
+</div>
 <div class="desc">
   员工用自然语言提问，Agent 自己决定<b>查几次、查什么</b>；答案下方带原文条款出处，库里没有就明确拒答、<b>不编造</b>。
   前端实时显示每一步（工具 / 参数 / 耗时 / 命中几条），<b>过程不可信时答案不算数</b>。
@@ -123,18 +136,15 @@
     <b>引用过期报告</b>才报红。</li>
 </ul>
 
-<div class="lab">结果</div>
+<h2>工程习惯（都能被当场追问）</h2>
 <ul>
-  <li>与同刻 <code>/chat</code> <b>基本打平</b>：gold <b>42/44</b>（+1）、漏答 <b>42/44</b>（−1）、拒答 <b>40/61</b>（−1）
-    —— 三项 1 胜 2 负，两处 −1 都在噪声带内。</li>
-  <li>一次问答约 <b>5 秒</b>、2 步工具调用；<b>63 条后端 + 16 条前端 + 532 条算法层测试</b>；五容器一条命令起，两仓 CI 全绿。</li>
+  <li><b>数字必须能复算</b>：简历里的 63 / 16 / 532 有一条命令现算
+    （<code>scripts/check_resume_numbers.py</code>），对不上就报红。</li>
+  <li><b>判据先证明会红</b>：每条检查配一条变异用例（把 k 改 4、把版本号改错），
+    先看它红过再谈它通过。</li>
+  <li><b>交接不靠口口相传</b>：HANDOFF / DECISIONS / 盲审记录全部入库；
+    报告头记代码 / 语料 / 依赖 / 判据四个版本。</li>
 </ul>
-
-<h2>教育背景</h2>
-<div class="edu">
-  <div><b>韩山师范学院</b> ｜ 软件工程（五年制专本衔接）</div>
-  <div class="when">2025 – 2030</div>
-</div>
 
 </body>
 </html>
