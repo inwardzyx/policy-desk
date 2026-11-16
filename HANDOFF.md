@@ -85,6 +85,14 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 所以"Agent 全栈"这条叙事现在站得住（不是讲空话）。依据：
 `_review_rag-cs/eval/reports/agent-baseline.md`。
 
+10. **`run_python` 保留、默认关；不再为它补题集或改 prompt**（2026-11-16，用户决定）：
+    已落地 `agent/sandbox.py`（断网/只读/限内存，六探针见 `experiments/verify-sandbox.md`），
+    但配对实验（`eval/reports/sandbox-ab.md`）在 `company-52` 的 23 道数字题上是**负结果**：
+    b=0 c=1 p=1.0、工具调用 **0 次** —— 因为那些题的数字直接写在条款里，不需要算。
+    ⇒ 结论：**能力缺口目前是假设，不是需求**。等真实信号（JD 明写"计算/执行"，或面试官问）
+      再补"必须组合计算"的题集与 prompt 约束；现在不再投入。
+    这条写在这里，是为了下个会话别再把它当待办重做一遍。
+
 ## 5. 待办（按优先级）
 
 | # | 事项 | 判据 |
