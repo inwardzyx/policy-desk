@@ -8,10 +8,16 @@
 | 简历原话 | 实际 | 病根 |
 |---|---|---|
 | `for rnd in range(6)` | `for rnd in range(rounds_limit)`（`MAX_ROUNDS = 6`） | 写成了**早期快照**，代码改了简历没跟 |
-| 473 条算法层测试 | `pytest --collect-only` = **532** | 加了几十个 agent 用例后没更新 |
+| 473 条算法层测试 | `pytest --collect-only` = 541 | 加了几十个 agent 用例后没更新 |
 | 16 条前端单测 | `npm test` = **16** ✓ | 数是对的，但没人能一眼复算 |
 
 ⇒ 规矩：**简历里每个数字都要有一条命令能现算**，并且这个脚本能判红。
+
+## 现在核哪些
+
+后端 `@Test` 数 / 前端 vitest 数 / 算法层 pytest 收集数 /
+场景套件数与用例数（`evalset/scenarios/*.jsonl`）/ 盲出独立集题数 /
+`for rnd in range(...)` 的写法。
 
 ## 怎么用
 
@@ -97,6 +103,24 @@ def count_pytest_collected() -> int:
     return int(m.group(1))
 
 
+def count_suites() -> tuple[int, int]:
+    """场景套件数 + 用例数：`evalset/scenarios/*.jsonl`，按文件数与非空行数现算。"""
+    d = RAG / "evalset" / "scenarios"
+    files = sorted(d.glob("*.jsonl"))
+    n_cases = 0
+    for f in files:
+        n_cases += sum(1 for line in _text(f).splitlines() if line.strip())
+    return len(files), n_cases
+
+
+def count_heldout() -> int:
+    """盲出独立集题数：`evalset/heldout/questions.json` 里 questions 的条数。"""
+    import json as _json
+
+    data = _json.loads(_text(RAG / "evalset" / "heldout" / "questions.json"))
+    return len(data.get("questions") or data)
+
+
 def loop_anchor_ok() -> tuple[bool, str]:
     """简历里那句 `for rnd in range(...)` 必须与代码逐字对得上。"""
     loop = _text(RAG / "agent" / "loop.py")
@@ -128,6 +152,8 @@ def main() -> int:
     have_ext = external_available()
     if have_ext:
         py = count_pytest_collected()
+        n_suites, n_cases = count_suites()
+        n_heldout = count_heldout()
         ok, loop = loop_anchor_ok()
     elif args.allow_missing_external:
         py, loop = None, None
@@ -149,6 +175,9 @@ def main() -> int:
     claim(r"(\d+) 条前端", fe, "前端单测数")
     if py is not None:
         claim(r"(\d+) 条算法层", py, "算法层测试数")
+        claim(r"(\d+) 个场景套件", n_suites, "场景套件数")
+        claim(r"(\d+) 条场景用例", n_cases, "场景用例数")
+        claim(r"(\d+) 题盲出独立集", n_heldout, "盲出独立集题数")
     else:
         print("SKIP 算法层测试数（外部仓库不在；CI 只 checkout 本仓库）")
 
@@ -161,6 +190,9 @@ def main() -> int:
     print(f"后端 @Test           = {java}")
     print(f"前端 vitest          = {fe}")
     print(f"算法层 pytest 收集    = {py if py is not None else 'SKIP（外部仓库不在）'}")
+    if py is not None:
+        print(f"场景套件 / 用例       = {n_suites} 个 / {n_cases} 条")
+        print(f"盲出独立集            = {n_heldout} 题")
     print(f"循环锚点             = {loop if loop is not None else 'SKIP'}")
 
     if problems:
