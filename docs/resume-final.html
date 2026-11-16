@@ -67,12 +67,8 @@
   <div>
     <h1>周语昕</h1>
     <div class="intent">求职意向：AI Agent 应用开发 / AI 应用开发（实习）</div>
-    <div class="pitch">
-      自己做过一个 Agent 问答应用：模型自己决定查几次、查什么，答案下面给条款出处；
-      另外做了一套 105 道题的评测，用来判断改动有没有让它变差。
-    </div>
     <div class="contact">
-      13022069636 ／ zyx167167@qq.com ／
+      13022069636 ｜ zyx167167@qq.com ｜
       GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（两个仓库，CI 均绿）<br />
       韩山师范学院 ｜ 软件工程（五年制专本衔接）｜ 2025–2030<br />
       到岗时间：可立即到岗，每周 4–5 天，可连续 6 个月
@@ -85,64 +81,58 @@
 <h2>专业技能</h2>
 <div class="skills">
   <div class="k">Agent 工程</div>
-  <div>函数调用循环（plan → tool → observe）、MCP（JSON-RPC over stdio）、
-    上下文拼装（八层 + token 预算 + trace）、SSE 流式、LangGraph 对照实验</div>
+  <div>函数调用循环（plan → tool → observe）、MCP（JSON-RPC over stdio）、上下文拼装（八层 + token 预算 + trace）、
+    SSE 流式、LangGraph 对照实验</div>
 
-  <div class="k">全栈</div>
-  <div>Python + FastAPI · Java 17 / Spring Boot 3 · MySQL 8 + Redis · Vue 3 + TypeScript ·
-    JWT、角色到 ACL 的单向投影、审计、异常与降级</div>
+  <div class="k">后端</div>
+  <div>Python + FastAPI · Java 17 / Spring Boot 3 · MySQL 8 + Redis · JWT、
+    角色到 ACL 的单向投影、审计、异常与降级</div>
 
-  <div class="k">评测</div>
-  <div>105 题盲出独立集 · exact McNemar 配对检验 · 噪声地板 · 变异测试 ·
-    判据版本（改了判分规则就让旧报告失效）</div>
+  <div class="k">前端与检索</div>
+  <div>Vue 3 + TypeScript + Vite · bge-small-zh embedding、BM25、RRF 融合、精排</div>
 
-  <div class="k">交付</div>
-  <div>Docker Compose 五容器、Nginx 反代与上传限额、Cloudflare Tunnel、GitHub Actions</div>
+  <div class="k">评测与交付</div>
+  <div>105 题盲出独立集、exact McNemar 配对检验、噪声地板、变异测试 ·
+    Docker Compose 五容器、Nginx 反代、Cloudflare Tunnel、GitHub Actions</div>
 </div>
 
 <h2>项目经历</h2>
 
 <h3>制度问答 Agent：多步检索 + 过程可见的问答系统<span class="role">（独立开发）</span><span class="when">2026.09 – 2026.11</span></h3>
-<div class="result-first">
-  gold 条款命中 <b>42/44</b> · 拒答 <b>40/61</b> · 与同刻 /chat <b>打平</b>（1 胜 2 负，都在噪声带内）<br />
-  一次问答约 5 秒、2 步工具调用 · 105 题盲出独立集 · <b>63</b> 条后端 + <b>16</b> 条前端 + <b>541</b> 条算法层测试
-</div>
 <div class="desc">
-  员工用自然语言提问，Agent 自己决定查几次、查什么；答案下面带原文条款，库里没有就明说不知道。
-  前端把每一步显示出来（工具、参数、耗时、命中几条），失败会标红。
+  面向学校与企业的制度问答系统。员工用自然语言提问，Agent 自己决定查几次、查什么，
+  答案下方给出原文条款；库里没有资料时明确拒答。前端实时显示每一步的工具、参数、耗时和命中条数。
 </div>
 <div class="stack">
   Vue 3 + TypeScript ｜ Spring Boot 3 + MySQL 8 + Redis ｜ Python + FastAPI + bge-small-zh / BM25 / RRF / DeepSeek ｜ MCP + SSE ｜ Docker Compose
 </div>
 
-<div class="lab">我做了什么</div>
+<div class="lab">项目详情</div>
 <ul>
-  <li>循环是手写的 <code>for rnd in range(rounds_limit)</code>，默认 6 轮。没套框架，因为框架会把
-    模型"为什么硬答"的过程藏进回调里，不好查。每轮就是模型选工具、执行、结果放回消息序列；
-    工具走 MCP，单独起进程用 JSON-RPC 通信。另外用 LangGraph 把同一个循环重写了一遍做对照，
-    比下来只换掉了控制流的三处。</li>
-  <li>上下文分八层拼装，带 token 预算和 trace；超预算或撞上限时显式收尾，不静默截断。
-    SSE 要穿过 Java 和 FastAPI 两层，Java 只搬字节不解析，事件语义只在一处定义。</li>
-  <li>前端时间线按后端事件渲染，用 16 条单测覆盖"算不算成功"：缺 result 事件就显示"状态未知"，
-    不会画成成功。</li>
-  <li>评测在 105 道盲出题上做：先量噪声地板，再上 exact McNemar。它抓到过一次真实的退化，
-    改写问法能绕过拒答，修完拒答从 <b>26/61</b> 到 <b>40/61</b>（同刻 /chat 是 41/61）。</li>
+  <li>Agent 循环手写为 <code>for rnd in range(rounds_limit)</code>（默认 6 轮），每轮由模型选工具、
+    执行、结果回填消息序列；工具通过 MCP 以 JSON-RPC 运行在独立进程。另用 LangGraph 重写同一循环做对照，
+    控制流差异只有 3 处。</li>
+  <li>拒答以原问题过闸（gate）为准：模型改写问法后即使命中无关条款，也不推翻拒答结论。
+    修复前改写问法可绕过拒答，修复后拒答 26/61 → 40/61（同刻 <code>/chat</code> 41/61）。</li>
+  <li>检索链路为 bge-small-zh 向量召回 + BM25 + RRF 融合 + 精排；上下文按八层拼装，
+    带 token 预算与 trace，超预算或撞上限时显式收尾而不是静默截断。</li>
+  <li>SSE 同时穿过 FastAPI 与 Spring Boot 两层，Java 端只做字节转发；前端按事件渲染时间线，
+    16 条单测覆盖"算不算成功"的判定，缺 result 事件显示为状态未知。</li>
+  <li>评测在 105 道盲出题上进行：先量噪声地板（±1 / 0 / ±1），再用 exact McNemar 判改动是否显著；
+    报告头记录代码、语料、依赖、判据四个版本，判据规则变更即判定旧报告失效。</li>
+  <li>交付为 Docker Compose 五容器（web / api / ai / mysql / redis），Nginx 反向代理与上传限额，
+    Cloudflare Tunnel 对外；两仓 CI 覆盖后端、前端、容器与评测门禁，均通过。</li>
 </ul>
 
-<div class="lab">两个踩过的坑</div>
-<ul>
-  <li>拒答曾经由"最后一次查询"决定：模型把问题改写后命中无关条款，答案看起来有出处。
-    后来改成以原问题过闸为准，循环里查到什么都不推翻它。</li>
-  <li>报告自己会过期：报告头记了代码、语料、依赖、判据四个版本。报告过期是正常的，
-    引用过期报告才该报错。</li>
-</ul>
+<div class="result-first">
+  成果：gold 条款命中 <b>42/44</b> · 拒答 <b>40/61</b> · 与同刻 <code>/chat</code> <b>打平</b>（1 胜 2 负，差异在噪声带内）<br />
+  一次问答约 <b>5 秒</b>、<b>2 步</b>工具调用 · 测试 <b>63</b> 条后端 + <b>16</b> 条前端 + <b>541</b> 条算法层
+</div>
 
-<h2>工作习惯</h2>
+<h2>其他</h2>
 <ul>
-  <li>简历里的测试数有脚本现算（<code>scripts/check_resume_numbers.py</code>），对不上就失败，
-    不靠手写。</li>
-  <li>写检查之前先想清楚它在坏情况下会不会响，每条都配一个变异用例，先看它红过。</li>
-  <li>交接的东西都入库：HANDOFF、决策记录、盲审记录；报告头记四个版本。</li>
+  <li>仓库：<code>github.com/inwardzyx/campus-policy-rag</code>（评测与算法层）、
+    <code>github.com/inwardzyx/policy-desk</code>（全栈应用）；后者含架构说明与 Agent 时间线截图。</li>
 </ul>
 
 </body>

@@ -148,7 +148,7 @@ def main() -> int:
     claim(r"(\d+) 条后端", java, "后端测试数")
     claim(r"(\d+) 条前端", fe, "前端单测数")
     if py is not None:
-        claim(r"(\d+) 条算法层测试", py, "算法层测试数")
+        claim(r"(\d+) 条算法层", py, "算法层测试数")
     else:
         print("SKIP 算法层测试数（外部仓库不在；CI 只 checkout 本仓库）")
 
