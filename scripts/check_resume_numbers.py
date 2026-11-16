@@ -61,8 +61,11 @@ def count_frontend_tests() -> int:
     import tempfile
 
     out = Path(tempfile.mkdtemp()) / "vitest.json"
-    r = subprocess.run(["npx", "vitest", "run", "--reporter=json", f"--outputFile={out}"],
-                       cwd=str(WEB), capture_output=True, text=True,
+    # ★ shell=True 只能配**字符串**：给 list 时 POSIX 会把第一个元素当整条命令，
+    #   剩下的当 sh 自己的参数 ⇒ 在 Linux（CI）里 npx 收不到 --reporter，JSON 永远不生成
+    #   （2026-11-16 CI 第二次失败就栽在这）。
+    cmd = f'npx vitest run --reporter=json --outputFile="{out}"'
+    r = subprocess.run(cmd, cwd=str(WEB), capture_output=True, text=True,
                        encoding="utf-8", errors="replace", shell=True)
     if out.exists():
         try:
