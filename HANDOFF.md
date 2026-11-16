@@ -106,6 +106,16 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
           同理要重算一次记录值。
     两条都要重跑报告，所以**等下一次要动评测时一起做**，别为 CI 单独折腾一次。
 
+    ★ 2026-11-16 已修并验证：
+      ① 行尾统一 LF（campus `.gitattributes` + 工作区 200 个文本文件转 LF + 重出全部报告），
+         `test_heldout_sha` 与新鲜度两项的哈希从此与本机一致；
+      ② 版面后端钉成 `pypdf`（CI 装不了 docling，`auto` 两边会选不同后端）；钉死后端时
+         检查器只比「钉的是谁」，不再比 auto；
+      ③ policy-desk 的 `check_resume_numbers.py` 用 `--reporter=json` 取 vitest 计数
+         （非 TTY 下解析不到 `Tests N passed`），且 `shell=True` 必须配字符串（配 list 在 POSIX
+         上会把参数丢掉）；
+      ④ 结果：policy-desk CI 全绿（52235ed）；campus 三个 job 里慢 job 与容器 job 已绿。
+
 ## 5. 待办（按优先级）
 
 | # | 事项 | 判据 |
