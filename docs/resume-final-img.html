@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <title>周语昕 · 简历</title>
 <style>
-  @page { size: A4; margin: 10.5mm 12.5mm; }
+  @page { size: A4; margin: 13mm 15mm; }
 
   :root { --ink: #1b1b1b; --muted: #5b5b5b; --line: #e2e2e2; --accent: #1f4e79; }
 
@@ -13,48 +13,46 @@
   body {
     margin: 0; color: var(--ink);
     font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
-    font-size: 9.6pt; line-height: 1.42;
+    font-size: 10pt; line-height: 1.5;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
 
-  h1 { font-size: 19pt; margin: 0 0 2mm; letter-spacing: 2px; font-weight: 600; }
+  h1 { font-size: 21pt; margin: 0 0 1.6mm; letter-spacing: 1.5px; font-weight: 600; }
 
   .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
   .intent { font-size: 10.4pt; font-weight: 600; color: var(--accent); margin-bottom: 1.8mm; }
-  .contact { font-size: 9.2pt; color: var(--muted); line-height: 1.7; }
-  .pitch { font-size: 9.6pt; margin: 0 0 1.6mm; padding-left: 2.2mm; border-left: 2.4px solid var(--accent); }
+  .contact { font-size: 9.5pt; color: var(--muted); line-height: 1.6; }
   .result-first {
-    font-size: 9.2pt; margin: 0 0 1.4mm; padding: 1.4mm 2mm;
+    font-size: 9.6pt; margin: 2.4mm 0 0; padding: 2mm 2.4mm;
     background: #f4f7fa; border-radius: 2px; line-height: 1.5;
   }
   .photo { width: 23mm; height: 31mm; border: 1px solid var(--line); border-radius: 2px; object-fit: cover; flex: 0 0 auto; }
 
   h2 {
-    font-size: 10.8pt; margin: 4mm 0 1.8mm; padding-bottom: 1mm;
+    font-size: 11.4pt; margin: 5mm 0 2mm; padding-bottom: 1.2mm;
     border-bottom: 1.4px solid var(--accent); color: var(--accent); letter-spacing: 0.5px;
   }
 
-  h3 { font-size: 10.4pt; margin: 0 0 1.2mm; }
-  h3 .role { font-weight: 400; color: var(--muted); font-size: 9.2pt; }
-  h3 .when { font-weight: 400; color: var(--muted); font-size: 9.2pt; float: right; }
+  h3 { font-size: 10.8pt; margin: 0 0 1.4mm; }
+  h3 .role { font-weight: 400; color: var(--muted); font-size: 9.4pt; }
+  h3 .when { font-weight: 400; color: var(--muted); font-size: 9.4pt; float: right; }
 
-  .desc { margin: 0 0 1mm; }
-  .stack { font-size: 8.9pt; color: var(--muted); margin: 0 0 1.4mm; line-height: 1.5; }
+  .desc { margin: 0 0 1.2mm; line-height: 1.55; }
+  .stack { font-size: 9pt; color: var(--muted); margin: 0 0 1.6mm; line-height: 1.5; }
 
-  .lab { font-size: 9.4pt; font-weight: 600; color: var(--accent); margin: 2.4mm 0 0.9mm; }
+  .lab { font-size: 9.8pt; font-weight: 600; color: var(--accent); margin: 3mm 0 1.2mm; }
 
   ul { margin: 0; padding-left: 5mm; }
-  li { margin-bottom: 1.4mm; }
+  li { margin-bottom: 1.8mm; }
   li::marker { color: var(--accent); }
 
   b { font-weight: 600; }
   .kw { color: var(--accent); font-weight: 600; }
-  code { font-family: Consolas, monospace; font-size: 9.1pt; }
+  code { font-family: Consolas, monospace; font-size: 9.4pt; }
+  p { margin: 0; }
 
-  .edu { display: flex; justify-content: space-between; font-size: 10pt; margin-top: 1mm; }
-  .edu .when { color: var(--muted); font-size: 9.2pt; }
 
-  .skills { display: grid; grid-template-columns: 21mm 1fr; gap: 1.5mm 3mm; font-size: 9.4pt; }
+  .skills { display: grid; grid-template-columns: 23mm 1fr; gap: 2mm 3.4mm; font-size: 9.6pt; }
   .skills .k { color: var(--accent); font-weight: 600; padding-top: 0.2mm; }
 
   li, h3 { break-inside: avoid; }
@@ -112,13 +110,13 @@
 <ul>
   <li>Agent 循环手写为 <code>for rnd in range(rounds_limit)</code>（默认 6 轮），每轮由模型选工具、
     执行、结果回填消息序列；工具通过 MCP 以 JSON-RPC 运行在独立进程。另用 LangGraph 重写同一循环做对照，
-    控制流差异只有 3 处。</li>
-  <li>拒答以原问题过闸（gate）为准：模型改写问法后即使命中无关条款，也不推翻拒答结论。
+    控制流只差 3 处。</li>
+  <li>拒答以原问题的过闸结果为准（gate）：模型改写问法后即使命中无关条款，也不推翻拒答结论。
     修复前改写问法可绕过拒答，修复后拒答 26/61 → 40/61（同刻 <code>/chat</code> 41/61）。</li>
   <li>检索链路为 bge-small-zh 向量召回 + BM25 + RRF 融合 + 精排；上下文按八层拼装，
-    带 token 预算与 trace，超预算或撞上限时显式收尾而不是静默截断。</li>
+    带 token 预算与 trace，超预算或撞上限时显式收尾，不静默截断。</li>
   <li>SSE 同时穿过 FastAPI 与 Spring Boot 两层，Java 端只做字节转发；前端按事件渲染时间线，
-    16 条单测覆盖"算不算成功"的判定，缺 result 事件显示为状态未知。</li>
+    16 条单测覆盖「算不算成功」的判定，缺 result 事件显示为状态未知。</li>
   <li>评测在 105 道盲出题上进行：先量噪声地板（±1 / 0 / ±1），再用 exact McNemar 判改动是否显著；
     报告头记录代码、语料、依赖、判据四个版本，判据规则变更即判定旧报告失效。</li>
   <li>交付为 Docker Compose 五容器（web / api / ai / mysql / redis），Nginx 反向代理与上传限额，
