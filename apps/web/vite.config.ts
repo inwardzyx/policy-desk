@@ -12,6 +12,9 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     port: 5173,
+    // ★ 演示用的公网域名是随机的（*.trycloudflare.com），必须在白名单里放行后缀；
+    //   否则 Vite 直接回 403 "Blocked request. This host is not allowed."（2026-11-16 实测）。
+    allowedHosts: ['.trycloudflare.com', 'localhost', '127.0.0.1'],
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8081',
@@ -24,6 +27,7 @@ export default defineConfig({
   preview: {
     port: 5173,
     strictPort: true,
+    allowedHosts: ['.trycloudflare.com', 'localhost', '127.0.0.1'],
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8081',
