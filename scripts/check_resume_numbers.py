@@ -24,6 +24,7 @@ D:\\Python-project\\.venv\\Scripts\\python.exe scripts\\check_resume_numbers.py
 from __future__ import annotations
 
 import os
+import json
 import re
 import subprocess
 import sys
@@ -51,12 +52,30 @@ def count_java_tests() -> int:
 
 
 def count_frontend_tests() -> int:
-    """前端测试数：**vitest 自己报的数**（`Tests  N passed`）。"""
-    r = subprocess.run(["npm", "test"], cwd=str(WEB), capture_output=True, text=True,
+    """前端测试数：**vitest 自己报的数**。
+
+    ★ 不要解析人读的那行 `Tests 16 passed`：本地 TTY 有、CI（非 TTY）下格式不同，
+      2026-11-16 CI 上就是这么失败的（拿不到数 → 脚本报错）。
+      改成让 vitest 直接输出 JSON（`--reporter=json`），读 `numTotalTests` —— 与环境无关。
+    """
+    import tempfile
+
+    out = Path(tempfile.mkdtemp()) / "vitest.json"
+    r = subprocess.run(["npx", "vitest", "run", "--reporter=json", f"--outputFile={out}"],
+                       cwd=str(WEB), capture_output=True, text=True,
                        encoding="utf-8", errors="replace", shell=True)
+    if out.exists():
+        try:
+            data = json.loads(out.read_text(encoding="utf-8"))
+            n = data.get("numTotalTests")
+            if isinstance(n, int):
+                return n
+        except Exception:                                  # noqa: BLE001
+            pass
+    # 兜底：老路径（TTY 环境），拿不到就明确报错，不返回 0
     m = re.search(r"Tests\s+(\d+)\s+passed", (r.stdout or "") + (r.stderr or ""))
     if not m:
-        raise RuntimeError("拿不到 vitest 的测试数（输出里没有 `Tests N passed`）")
+        raise RuntimeError("拿不到 vitest 的测试数（JSON 与人读输出都没解析出来）")
     return int(m.group(1))
 
 
