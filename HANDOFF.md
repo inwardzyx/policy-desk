@@ -79,6 +79,12 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
 9. **不做 `git bisect`**：入口/语义要逐版本验证，bisect 的前提（入口一致）本身得先被证明 —— 已用
    worktree 三组合实测替代（`eval/reports/repro-old-code.md`）。
 
+**2026-11-16 更新**：简历主线已换成 **AI Agent 全栈**（`docs/resume-final.html`）——
+项目一 = 制度问答 Agent（多步 + 过程可见），评测降为「质量门禁（差异化）」一节。
+配套事实：agent 与 `/chat` 在 105 题上基本追平（gold 42/44 vs 41/44、拒答 40/61 vs 41/61），
+所以"Agent 全栈"这条叙事现在站得住（不是讲空话）。依据：
+`_review_rag-cs/eval/reports/agent-baseline.md`。
+
 ## 5. 待办（按优先级）
 
 | # | 事项 | 判据 |

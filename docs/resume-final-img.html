@@ -62,7 +62,7 @@
 <div class="head">
   <div>
     <h1>周语昕</h1>
-    <div class="intent">求职意向：AI 评测 / AI 应用（实习）</div>
+    <div class="intent">求职意向：AI Agent 全栈 / AI 应用（实习）</div>
     <div class="contact">
       13022069636 ／ zyx167167@qq.com<br />
       GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（两个仓库，CI 均绿）<br />
@@ -75,17 +75,17 @@
 
 <h2>专业技能</h2>
 <div class="skills">
-  <div class="k">评测与判据</div>
-  <div>105 题盲出独立集（44+61）、exact McNemar 配对检验、噪声地板、变异测试、失败归因分桶</div>
+  <div class="k">Agent 工程</div>
+  <div>手写工具调用循环（plan → tool → observe）、MCP（JSON-RPC over stdio）、SSE 流式事件、多步状态与预算</div>
 
-  <div class="k">评测基建</div>
-  <div>报告运行指纹（代码 / 语料 / 依赖 / PDF 后端）、新鲜度检查（引用过期即红）、CI 准入、口径单一来源</div>
+  <div class="k">前端</div>
+  <div>Vue 3 + TypeScript + Vite：对话时间线（逐步耗时/命中数/失败标红）、流式渲染、路由守卫</div>
 
-  <div class="k">AI 应用</div>
-  <div>RAG（向量 + BM25 + RRF）、LLM 精排与拒答策略、DeepSeek 接入、MCP server</div>
+  <div class="k">后端</div>
+  <div>Spring Boot 3 + MySQL 8 + Redis（JWT、配额、审计）· Python + FastAPI（检索/精排/生成）</div>
 
-  <div class="k">后端与前端</div>
-  <div>Spring Boot 3 + MySQL 8 + Redis（REST、JWT、配额、审计）· Vue 3 + TypeScript + Vite</div>
+  <div class="k">评测与质量</div>
+  <div>105 题盲出独立集、exact McNemar 配对检验、噪声地板、变异测试、报告运行指纹</div>
 
   <div class="k">交付与运维</div>
   <div>Docker Compose 五容器、Nginx 反代与上传限额、Cloudflare Tunnel、GitHub Actions</div>
@@ -93,39 +93,39 @@
 
 <h2>项目经历</h2>
 
-<h3>LLM 评测流水线 —— 把「改动有没有变好」变成可复核的结论<span class="role">（独立开发）</span><span class="when">2026.10 – 2026.11</span></h3>
+<h3>制度问答 Agent —— 多步检索 + 过程可见的问答系统<span class="role">（独立开发）</span><span class="when">2026.09 – 2026.11</span></h3>
 <div class="desc">
-  一条<b>单消费者</b>评测流水线：评测集 → 判据 → 执行 → 门禁 → 报告，<b>被测对象是下面的制度问答系统</b>；
-  刻意不建平台接口 —— 只有一个消费者，多一层抽象只多一层没人调的代码。
+  员工用自然语言提问，Agent 自己决定<b>调几次工具、查什么</b>，答案下方带原文条款出处；资料里没有就明确拒答、<b>不编造</b>。
+  前端实时显示每一步（调了哪个工具、耗时、命中几条），<b>过程不可信时答案不算数</b>。
+</div>
+<div class="stack">
+  Vue 3 + TypeScript ｜ Spring Boot 3 + MySQL 8 + Redis ｜ Python + FastAPI + bge-small-zh / BM25 / RRF / DeepSeek ｜ MCP + SSE ｜ Docker Compose
 </div>
 
 <div class="lab">我的工作</div>
 <ul>
-  <li><b>指标与口径</b>：3 条检索层指标（Recall@5 / 漏答 / 拒答准确），<b>分母各自算</b>；口径只写一处，
-    报告全脚本生成、<b>数字不手抄</b>，改一个跑批 JSON 报告就跟着变。</li>
-  <li><b>数据与版本</b>：<b>105 题盲出独立集</b>（44 应答 + 61 拒答）+ sha256 + pre-push 校验；
-    改任何一题都会被拦下，避免「用自己调过的题证明自己」。</li>
-  <li><b>先量噪声，再谈差异</b>：同配置重跑 4 次得观测极差（Recall@5 ±1 / 漏答 0 / 拒答 ±1），
-    小于等于该幅度不作解释；改动一律用 <b>exact McNemar 配对检验</b> 判定。</li>
-  <li><b>门禁与自证</b>：每条判据配一条<b>变异用例</b>（改 k、改比对字段、把指标写反）证明它会红；
-    跨层直接拒绝比较；κ 在样本 &lt;20 时<b>拒绝输出</b>。</li>
-  <li><b>可追溯</b>：每份报告带<b>运行指纹</b>（git sha + 逐目录语料哈希 + 依赖指纹 + 可用 PDF 后端）；
-    <b>报告过期合法，「引用过期报告」才报红</b> —— 这一条把「README 与产物一起过期」也堵住了。</li>
+  <li><b>Agent 循环</b>：手写 <code>for rnd in range(6)</code>（不套框架 —— 框架会把"为什么硬答"藏进回调），
+    每轮「模型决定调哪个工具 → 执行 → 把结果放回消息序列」；工具走 <b>MCP</b>，本机另起进程用 JSON-RPC 通信。</li>
+  <li><b>全链路与流式</b>：Vue → Spring Boot（JWT / 配额 / 审计）→ FastAPI，<b>SSE 穿透两层</b>：
+    Java 只搬字节不解析，事件语义只在 Python 一处定义；超预算/撞上限都会显式收尾，不静默截断。</li>
+  <li><b>时间线</b>：按后端事件渲染每一步（工具 / 参数 / 耗时 / 命中数），失败标红；
+    <b>16 条前端单测</b>钉住"算不算成功"的判据 —— 缺 <code>result</code> 事件即判「状态未知」，不许显示成成功。</li>
+  <li><b>质量门禁（差异化）</b>：用 <b>105 题盲出独立集</b>判定 agent 有没有变差（先量噪声地板，再上 exact McNemar）；
+    实测抓出并修掉一条真实退化：<b>改写问法就能绕过拒答</b>，拒答 <b>26/61 → 40/61</b>（`/chat` 同刻 41/61）。</li>
 </ul>
 
-<h3 style="margin-top:4.6mm">制度问答台 —— 企业制度问答系统<span class="role">（被测对象）</span><span class="when">2026.09 – 2026.11</span></h3>
-<div class="desc">
-  员工用自然语言提问，<b>答案下方带原文条款出处</b>；资料里没有就明确拒答、<b>不编造</b>。
-  按「谁在问、能问什么、问了多少次」拆成 Java 业务层与 Python 算法层。
-</div>
-
-<div class="lab">关键实现</div>
+<div class="lab">两个难点</div>
 <ul>
-  <li><b>权限</b>：角色在业务层一次性投影成 ACL（未登记角色直接 403、不降级），算法层只认 ACL。
-    实测同一问题：<b>人事命中薪酬条款并带出处，普通员工被明确拒绝</b>，请求参数一个字没变。</li>
-  <li><b>检索与成本</b>：向量 + BM25 + RRF + LLM 精排；条款号写进索引后条款类命中 <b>2/15 → 13/15</b>。
-    每日配额在<b>调模型之前</b>判定，超限 429 且<b>不产生模型费用</b>。</li>
-  <li><b>结果</b>：<b>63 条后端 + 4 条前端 + 473 条算法层测试</b>；五容器一条命令起、公网可访问，一次问答约 <b>4 秒</b>。</li>
+  <li><b>「拒答」不能由循环里最后一次查询决定</b>：改写成"退学 复学 重新入学"后命中了《应征入伍管理办法》，
+    答案看起来有出处、其实无关。改成<b>以原问题过闸为准</b>，循环里查到什么都不能推翻它。</li>
+  <li><b>改写重试差点误杀正常题</b>：第一版按"每次调用"数上限，正常题第一次换措辞就被截断 ——
+    改成<b>按"新的不同问法"去重计数</b>才既不放过绕闸、也不打断正常多步检索。</li>
+</ul>
+
+<div class="lab">结果</div>
+<ul>
+  <li><b>gold 条款命中 42/44</b>（同一刻 <code>/chat</code> 41/44），<b>拒答 40/61</b>；一次问答约 <b>5 秒</b>、2 步工具调用。</li>
+  <li><b>63 条后端 + 16 条前端 + 473 条算法层测试</b>，每次提交自动跑；五容器一条命令起，公网可访问，两仓 CI 全绿。</li>
 </ul>
 
 <h2>教育背景</h2>
