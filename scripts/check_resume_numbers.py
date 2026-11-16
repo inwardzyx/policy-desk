@@ -96,6 +96,9 @@ def main() -> int:
     args = ap.parse_args()
 
     html = _text(RESUME)
+    # ★ 去掉标签再匹配：加粗会把 "63 条后端" 切成 "<b>63</b> 条后端"，
+    #   直接对 HTML 正则匹配会漏掉（2026-11-16 给关键数字加粗时当场踩到）。
+    plain = re.sub(r"<[^>]+>", "", html)
     problems: list[str] = []
 
     java = count_java_tests()
@@ -112,7 +115,7 @@ def main() -> int:
         return 1
 
     def claim(pattern: str, expect: int, label: str) -> None:
-        m = re.search(pattern, html)
+        m = re.search(pattern, plain)
         if not m:
             problems.append(f"{label}：简历里找不到这句（{pattern}）")
             return
@@ -128,7 +131,7 @@ def main() -> int:
         print("SKIP 算法层测试数（外部仓库不在；CI 只 checkout 本仓库）")
 
     if loop is not None:
-        if f"range({loop.split('（')[0]})" not in html:
+        if f"range({loop.split('（')[0]})" not in plain:
             problems.append(f"循环写法：简历里没写 `for rnd in range({loop.split('（')[0]})` —— 与代码不一致")
     else:
         print("SKIP 循环写法（同上）")

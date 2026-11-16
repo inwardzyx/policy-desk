@@ -93,6 +93,19 @@ D:\_review_rag-cs       ← 算法层（234 个提交）        github.com/inwar
       再补"必须组合计算"的题集与 prompt 约束；现在不再投入。
     这条写在这里，是为了下个会话别再把它当待办重做一遍。
 
+11. **两仓 CI 当前是红的（2026-11-16 实测），简历不再写"CI 均绿"**：
+    campus 失败在 `test_heldout_sha`（期望 45b72e25，CI 里实际 da51623a）与「报告新鲜度」五项
+    STALE_MULTI；policy-desk 失败在 `Resume numbers vs code`（vitest 输出在 CI 里没有
+    `Tests N passed` 这句）。
+    根因同一个：**行尾**。本机 `core.autocrlf=true` ⇒ 工作区是 CRLF，CI 检出是 LF，
+    于是 sha256/判据版本/语料哈希全都对不上（判据版本 CI 里是 fe0cf083，本机 ec2d60d8）。
+    修法有两条，选一：
+      (a) 把参与哈希的文件改成 `eol=lf`（`.gitattributes`）+ 重算 `evalset/heldout/questions.sha256`，
+          再把报告重跑一遍（离线 ~2 分钟、在线 ~4 分钟、agent ~10 分钟）；
+      (b) 让哈希函数先做 CRLF→LF 归一（`kb/criteria.py`、`kb/runstate.py`、`scripts/check_heldout_sha.py`），
+          同理要重算一次记录值。
+    两条都要重跑报告，所以**等下一次要动评测时一起做**，别为 CI 单独折腾一次。
+
 ## 5. 待办（按优先级）
 
 | # | 事项 | 判据 |
