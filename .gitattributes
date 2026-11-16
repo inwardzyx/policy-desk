@@ -1,0 +1,4 @@
+# 钩子必须是 LF：CRLF 会让 shebang 变成 `#!/usr/bin/env bash\r`，
+# 在 Git Bash 里直接报 "bash\r: No such file or directory"（本仓库另一处踩过同款）。
+scripts/hooks/* text eol=lf
+# 其余脚本按平台默认，不做全局规定（避免误伤 Windows 脚本）

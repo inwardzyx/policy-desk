@@ -23,6 +23,7 @@ D:\\Python-project\\.venv\\Scripts\\python.exe scripts\\check_resume_numbers.py
 """
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -32,7 +33,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = Path(__file__).resolve().parent.parent
 RESUME = ROOT / "docs" / "resume-final.html"
-RAG = Path(r"D:\_review_rag-cs")
+RAG = Path(os.environ.get("RESUME_CHECK_RAG_DIR", r"D:\_review_rag-cs"))
 PY = r"D:\Python-project\.venv\Scripts\python.exe"
 WEB = ROOT / "apps" / "web"
 
@@ -59,6 +60,11 @@ def count_frontend_tests() -> int:
     return int(m.group(1))
 
 
+def external_available() -> bool:
+    """算法层锚点在**另一个仓库**里。CI 只 checkout 本仓库 ⇒ 必须显式降级，不许静默当 0。"""
+    return (RAG / "tests").exists() and Path(PY).exists()
+
+
 def count_pytest_collected() -> int:
     """算法层测试数：pytest **收集数**（不是"跑过的"，收集数与环境无关、可复算）。"""
     r = subprocess.run([PY, "-m", "pytest", "--collect-only", "-q"], cwd=str(RAG),
@@ -82,13 +88,28 @@ def loop_anchor_ok() -> tuple[bool, str]:
 
 
 def main() -> int:
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--allow-missing-external", action="store_true",
+                    help="外部仓库（campus-policy-rag）不在时，跳过算法层与循环锚点，而不是报错")
+    args = ap.parse_args()
+
     html = _text(RESUME)
     problems: list[str] = []
 
     java = count_java_tests()
     fe = count_frontend_tests()
-    py = count_pytest_collected()
-    ok, loop = loop_anchor_ok()
+    have_ext = external_available()
+    if have_ext:
+        py = count_pytest_collected()
+        ok, loop = loop_anchor_ok()
+    elif args.allow_missing_external:
+        py, loop = None, None
+    else:
+        print("✗ 找不到外部仓库（campus-policy-rag）或解释器 —— "
+              "算法层与循环锚点无法核对。CI 里请加 --allow-missing-external。")
+        return 1
 
     def claim(pattern: str, expect: int, label: str) -> None:
         m = re.search(pattern, html)
@@ -101,15 +122,21 @@ def main() -> int:
 
     claim(r"(\d+) 条后端", java, "后端测试数")
     claim(r"(\d+) 条前端", fe, "前端单测数")
-    claim(r"(\d+) 条算法层测试", py, "算法层测试数")
+    if py is not None:
+        claim(r"(\d+) 条算法层测试", py, "算法层测试数")
+    else:
+        print("SKIP 算法层测试数（外部仓库不在；CI 只 checkout 本仓库）")
 
-    if f"range({loop.split('（')[0]})" not in html:
-        problems.append(f"循环写法：简历里没写 `for rnd in range({loop.split('（')[0]})` —— 与代码不一致")
+    if loop is not None:
+        if f"range({loop.split('（')[0]})" not in html:
+            problems.append(f"循环写法：简历里没写 `for rnd in range({loop.split('（')[0]})` —— 与代码不一致")
+    else:
+        print("SKIP 循环写法（同上）")
 
     print(f"后端 @Test           = {java}")
     print(f"前端 vitest          = {fe}")
-    print(f"算法层 pytest 收集    = {py}")
-    print(f"循环锚点             = {loop}")
+    print(f"算法层 pytest 收集    = {py if py is not None else 'SKIP（外部仓库不在）'}")
+    print(f"循环锚点             = {loop if loop is not None else 'SKIP'}")
 
     if problems:
         print("\n✗ 简历与代码对不上：")

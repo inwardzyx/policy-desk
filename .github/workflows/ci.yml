@@ -78,6 +78,15 @@ jobs:
       - name: Test
         run: npm run test
 
+      # ★ 简历上的数字必须能现算：63（后端 @Test）/ 16（vitest）/ 532（算法层 pytest 收集）
+      #   以及那句 `for rnd in range(rounds_limit)` 是否与代码逐字一致。
+      #   ★ 算法层在**另一个仓库**（campus-policy-rag），CI 只 checkout 本仓库 ⇒
+      #     显式降级为 SKIP（不许静默当 0）；本仓库的两个数照查。
+      #   ★ 为什么放 web job：这里已经 `npm ci` 过，vitest 能直接跑；另起 job 要多装一遍 node。
+      - name: Resume numbers vs code
+        working-directory: .
+        run: python3 scripts/check_resume_numbers.py --allow-missing-external
+
   deploy:
     name: deploy manifest
     runs-on: ubuntu-latest
