@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <title>周语昕 · 简历</title>
 <style>
-  @page { size: A4; margin: 11.5mm 13mm; }
+  @page { size: A4; margin: 10.5mm 12.5mm; }
 
   :root { --ink: #1b1b1b; --muted: #5b5b5b; --line: #e2e2e2; --accent: #1f4e79; }
 
@@ -13,43 +13,43 @@
   body {
     margin: 0; color: var(--ink);
     font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
-    font-size: 9.9pt; line-height: 1.47;
+    font-size: 9.6pt; line-height: 1.42;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
 
-  h1 { font-size: 20pt; margin: 0 0 2.4mm; letter-spacing: 2px; font-weight: 600; }
+  h1 { font-size: 19pt; margin: 0 0 2mm; letter-spacing: 2px; font-weight: 600; }
 
   .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
-  .intent { font-size: 10.6pt; font-weight: 600; color: var(--accent); margin-bottom: 2mm; }
-  .contact { font-size: 9.3pt; color: var(--muted); line-height: 1.75; }
+  .intent { font-size: 10.4pt; font-weight: 600; color: var(--accent); margin-bottom: 1.8mm; }
+  .contact { font-size: 9.2pt; color: var(--muted); line-height: 1.7; }
   .photo { width: 23mm; height: 31mm; border: 1px solid var(--line); border-radius: 2px; object-fit: cover; flex: 0 0 auto; }
 
   h2 {
-    font-size: 11pt; margin: 4.6mm 0 2mm; padding-bottom: 1.2mm;
+    font-size: 10.8pt; margin: 4mm 0 1.8mm; padding-bottom: 1mm;
     border-bottom: 1.4px solid var(--accent); color: var(--accent); letter-spacing: 0.5px;
   }
 
-  h3 { font-size: 10.6pt; margin: 0 0 1.4mm; }
-  h3 .role { font-weight: 400; color: var(--muted); font-size: 9.3pt; }
-  h3 .when { font-weight: 400; color: var(--muted); font-size: 9.3pt; float: right; }
+  h3 { font-size: 10.4pt; margin: 0 0 1.2mm; }
+  h3 .role { font-weight: 400; color: var(--muted); font-size: 9.2pt; }
+  h3 .when { font-weight: 400; color: var(--muted); font-size: 9.2pt; float: right; }
 
-  .desc { margin: 0 0 1.2mm; }
-  .stack { font-size: 9pt; color: var(--muted); margin: 0 0 1.6mm; line-height: 1.55; }
+  .desc { margin: 0 0 1mm; }
+  .stack { font-size: 8.9pt; color: var(--muted); margin: 0 0 1.4mm; line-height: 1.5; }
 
-  .lab { font-size: 9.6pt; font-weight: 600; color: var(--accent); margin: 2.8mm 0 1mm; }
+  .lab { font-size: 9.4pt; font-weight: 600; color: var(--accent); margin: 2.4mm 0 0.9mm; }
 
-  ul { margin: 0; padding-left: 5.2mm; }
-  li { margin-bottom: 1.6mm; }
+  ul { margin: 0; padding-left: 5mm; }
+  li { margin-bottom: 1.4mm; }
   li::marker { color: var(--accent); }
 
   b { font-weight: 600; }
   .kw { color: var(--accent); font-weight: 600; }
-  code { font-family: Consolas, monospace; font-size: 9.4pt; }
+  code { font-family: Consolas, monospace; font-size: 9.1pt; }
 
-  .edu { display: flex; justify-content: space-between; font-size: 10.2pt; margin-top: 1mm; }
-  .edu .when { color: var(--muted); font-size: 9.4pt; }
+  .edu { display: flex; justify-content: space-between; font-size: 10pt; margin-top: 1mm; }
+  .edu .when { color: var(--muted); font-size: 9.2pt; }
 
-  .skills { display: grid; grid-template-columns: 22mm 1fr; gap: 1.6mm 3.2mm; font-size: 9.7pt; }
+  .skills { display: grid; grid-template-columns: 21mm 1fr; gap: 1.5mm 3mm; font-size: 9.4pt; }
   .skills .k { color: var(--accent); font-weight: 600; padding-top: 0.2mm; }
 
   li, h3 { break-inside: avoid; }
@@ -61,10 +61,10 @@
 <div class="head">
   <div>
     <h1>周语昕</h1>
-    <div class="intent">求职意向：AI Agent 全栈 / AI 应用（实习）</div>
+    <div class="intent">求职意向：AI Agent 应用开发 / AI 应用开发（实习）</div>
     <div class="contact">
       13022069636 ／ zyx167167@qq.com<br />
-      GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（两个仓库，CI 均绿）<br />
+      GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（两个仓库，CI 均绿，含可运行 demo）<br />
       到岗时间：<b>可立即到岗</b>，每周 4–5 天，可连续 6 个月
     </div>
   </div>
@@ -75,16 +75,17 @@
 <h2>专业技能</h2>
 <div class="skills">
   <div class="k">Agent 工程</div>
-  <div>手写工具调用循环（plan → tool → observe）、MCP（JSON-RPC over stdio）、SSE 流式事件、多步状态与预算</div>
-
-  <div class="k">前端</div>
-  <div>Vue 3 + TypeScript + Vite：对话时间线（逐步耗时/命中数/失败标红）、流式渲染、路由守卫</div>
+  <div><b>函数 / 工具调用</b>循环（plan → tool → observe）、<b>MCP</b>（JSON-RPC over stdio）、
+    <b>上下文工程</b>（八层 + token 预算 + trace）、SSE 流式、LangGraph 对照实验</div>
 
   <div class="k">后端</div>
-  <div>Spring Boot 3 + MySQL 8 + Redis（JWT、配额、审计）· Python + FastAPI（检索/精排/生成）</div>
+  <div>Python + FastAPI · Java 17 / Spring Boot 3 · MySQL 8 + Redis · JWT、<b>角色 → ACL 单向投影</b>、审计、异常与降级</div>
+
+  <div class="k">前端</div>
+  <div>Vue 3 + TypeScript + Vite：<b>SSE 时间线</b>（逐步耗时 / 命中数 / 失败标红）、流式渲染、路由守卫</div>
 
   <div class="k">评测与质量</div>
-  <div>105 题盲出独立集、exact McNemar 配对检验、噪声地板、变异测试、报告运行指纹</div>
+  <div>105 题盲出独立集 · exact McNemar 配对检验 · 噪声地板 · 变异测试 · <b>判据版本</b>（改判分规则即让旧报告失效）</div>
 
   <div class="k">交付与运维</div>
   <div>Docker Compose 五容器、Nginx 反代与上传限额、Cloudflare Tunnel、GitHub Actions</div>
@@ -94,8 +95,8 @@
 
 <h3>制度问答 Agent —— 多步检索 + 过程可见的问答系统<span class="role">（独立开发）</span><span class="when">2026.09 – 2026.11</span></h3>
 <div class="desc">
-  员工用自然语言提问，Agent 自己决定<b>调几次工具、查什么</b>，答案下方带原文条款出处；资料里没有就明确拒答、<b>不编造</b>。
-  前端实时显示每一步（调了哪个工具、耗时、命中几条），<b>过程不可信时答案不算数</b>。
+  员工用自然语言提问，Agent 自己决定<b>查几次、查什么</b>；答案下方带原文条款出处，库里没有就明确拒答、<b>不编造</b>。
+  前端实时显示每一步（工具 / 参数 / 耗时 / 命中几条），<b>过程不可信时答案不算数</b>。
 </div>
 <div class="stack">
   Vue 3 + TypeScript ｜ Spring Boot 3 + MySQL 8 + Redis ｜ Python + FastAPI + bge-small-zh / BM25 / RRF / DeepSeek ｜ MCP + SSE ｜ Docker Compose
@@ -103,28 +104,29 @@
 
 <div class="lab">我的工作</div>
 <ul>
-  <li><b>Agent 循环</b>：手写 <code>for rnd in range(6)</code>（不套框架 —— 框架会把"为什么硬答"藏进回调），
-    每轮「模型决定调哪个工具 → 执行 → 把结果放回消息序列」；工具走 <b>MCP</b>，本机另起进程用 JSON-RPC 通信。</li>
-  <li><b>全链路与流式</b>：Vue → Spring Boot（JWT / 配额 / 审计）→ FastAPI，<b>SSE 穿透两层</b>：
-    Java 只搬字节不解析，事件语义只在 Python 一处定义；超预算/撞上限都会显式收尾，不静默截断。</li>
-  <li><b>时间线</b>：按后端事件渲染每一步（工具 / 参数 / 耗时 / 命中数），失败标红；
+  <li><b>Agent 循环与工具</b>：手写 <code>for rnd in range(6)</code>（不套框架 —— 框架会把"为什么硬答"藏进回调），
+    每轮「模型选工具 → 执行 → 结果放回消息序列」；工具走 <b>MCP</b>，另起进程用 JSON-RPC 通信；
+    另用 <b>LangGraph</b> 重写同一循环做对照，量出"换框架只换掉了控制流三处"。</li>
+  <li><b>上下文与流式</b>：上下文<b>八层 + token 预算 + trace</b>，超预算 / 撞上限都显式收尾，不静默截断；
+    <b>SSE 穿透 Java 与 FastAPI 两层</b> —— Java 只搬字节不解析，事件语义只在一处定义。</li>
+  <li><b>前端时间线</b>：按后端事件渲染每一步（工具 / 参数 / 耗时 / 命中数），失败标红；
     <b>16 条前端单测</b>钉住"算不算成功"的判据 —— 缺 <code>result</code> 事件即判「状态未知」，不许显示成成功。</li>
-  <li><b>质量门禁（差异化）</b>：用 <b>105 题盲出独立集</b>判定 agent 有没有变差（先量噪声地板，再上 exact McNemar）；
-    实测抓出并修掉一条真实退化：<b>改写问法就能绕过拒答</b>，拒答 <b>26/61 → 40/61</b>（`/chat` 同刻 41/61）。</li>
+  <li><b>质量门禁（评测）</b>：用 <b>105 题盲出独立集</b>判定改动有没有让 Agent 变差（先量噪声地板，再上 exact McNemar）；
+    实测抓出并修掉一条真实退化：<b>改写问法就能绕过拒答</b>，拒答 <b>26/61 → 40/61</b>（同刻 <code>/chat</code> 41/61）。</li>
 </ul>
 
 <div class="lab">两个难点</div>
 <ul>
-  <li><b>「拒答」不能由循环里最后一次查询决定</b>：改写成"退学 复学 重新入学"后命中了《应征入伍管理办法》，
-    答案看起来有出处、其实无关。改成<b>以原问题过闸为准</b>，循环里查到什么都不能推翻它。</li>
-  <li><b>改写重试差点误杀正常题</b>：第一版按"每次调用"数上限，正常题第一次换措辞就被截断 ——
-    改成<b>按"新的不同问法"去重计数</b>才既不放过绕闸、也不打断正常多步检索。</li>
+  <li><b>拒答不能由"最后一次查询"决定</b>：它把问题改写后命中了无关条款，答案看起来有出处。
+    改成<b>以原问题过闸为准</b>，循环里查到什么都不能推翻它。</li>
+  <li><b>判据本身也会过期</b>：报告头记四个版本（代码 / 语料 / 依赖 / <b>判据</b>）；报告过期合法，
+    <b>引用过期报告</b>才报红。</li>
 </ul>
 
 <div class="lab">结果</div>
 <ul>
-  <li><b>gold 条款命中 42/44</b>（同一刻 <code>/chat</code> 41/44），<b>拒答 40/61</b>；一次问答约 <b>5 秒</b>、2 步工具调用。</li>
-  <li><b>63 条后端 + 16 条前端 + 473 条算法层测试</b>，每次提交自动跑；五容器一条命令起，公网可访问，两仓 CI 全绿。</li>
+  <li><b>gold 条款命中 42/44</b>（同刻 <code>/chat</code> 41/44）、<b>拒答 40/61</b>；一次问答约 <b>5 秒</b>、2 步工具调用。</li>
+  <li><b>63 条后端 + 16 条前端 + 473 条算法层测试</b>；五容器一条命令起、公网可访问，两仓 CI 全绿。</li>
 </ul>
 
 <h2>教育背景</h2>
