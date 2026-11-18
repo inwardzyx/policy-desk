@@ -85,15 +85,16 @@
   <div>函数调用循环（plan → tool → observe）、MCP（JSON-RPC over stdio）、上下文拼装（八层 + token 预算 + trace）、
     SSE 流式、LangGraph 对照实验</div>
 
+  <div class="k">评测与质量</div>
+  <div>9 个场景套件 / 156 条场景用例 + 105 题盲出独立集；exact McNemar、噪声地板、变异测试、
+    判据版本（改判分规则即让旧报告失效）</div>
+
   <div class="k">后端</div>
   <div>Python + FastAPI · Java 17 / Spring Boot 3 · MySQL 8 + Redis · JWT、
     角色到 ACL 的单向投影、审计、异常与降级</div>
 
   <div class="k">前端与检索</div>
   <div>Vue 3 + TypeScript + Vite · bge-small-zh embedding、BM25、RRF 融合、精排</div>
-
-  <div class="k">评测</div>
-  <div>9 个场景套件 / 156 条场景用例 + 105 题盲出独立集；exact McNemar、噪声地板、变异测试、判据版本</div>
 
   <div class="k">交付</div>
   <div>Docker Compose 五容器、Nginx 反代与上传限额、Cloudflare Tunnel、GitHub Actions</div>
@@ -103,9 +104,9 @@
 
 <h3>PolicyDesk：制度文档的多步检索 Agent<span class="role">（独立开发）</span><span class="when">2026.09 – 2026.11</span></h3>
 <div class="desc">
-  面向学校与企业的制度问答产品。员工用自然语言提问，Agent 自己决定查几次、查什么，
-  答案下方给出原文条款；库里没有资料时明确拒答。每版改动都要过 105 题评测门禁才能发布。
-  前端实时显示每一步的工具、参数、耗时和命中条数。
+  面向学校与企业的制度问答产品：员工问请假、报销、处分这类制度问题，Agent 自己决定查几次、
+  查什么，答案下方给出原文条款，库里没有就明确拒答。覆盖 9 个场景套件、156 条用例
+  （校园制度、企业制度、HR 权限、多跳、拒答、时间版本）。每版改动都要过 105 题评测门禁才能发布。
 </div>
 <div class="stack">
   Vue 3 + TypeScript ｜ Spring Boot 3 + MySQL 8 + Redis ｜ Python + FastAPI + bge-small-zh / BM25 / RRF / DeepSeek ｜ MCP + SSE ｜ Docker Compose
