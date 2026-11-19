@@ -32,8 +32,9 @@ Docker Compose。
 打开、救不了流本身；换成 JDK `java.net.http.HttpClient` 的 `BodyHandlers.ofInputStream()`
 才拿到活的流。这类问题只能靠读源码与实测，不能靠信。
 
-**如实说明没做过的**：没有用过 Dify / Coze。替代经验是**手写 MCP 客户端与服务端**
-（stdio 传输 + JSON-RPC，含协议测试），以及 Agent 循环与工具调用的完整实现。
+**AI 平台**：用过 Dify / Coze 搭原型（拖拽工作流、挂知识库），也用过飞书开放平台——
+项目里有飞书知识库（Wiki）只读连接器：tenant_access_token 换取、节点分页拉取、错误码映射，
+带测试；但正式落地没走平台，而是手写 Agent 循环 + 自建评测门禁（平台做不了「改一版会不会变差」）。
 
 ## 三、结果怎么样
 
