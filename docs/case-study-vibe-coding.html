@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>周语昕 · AI 应用案例</title>
+<style>
+  @page { size: A4; margin: 11mm 12mm; }
+  :root { --ink: #1b1b1b; --muted: #5b5b5b; --line: #e2e2e2; --accent: #1f4e79; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto; padding: 11mm 12mm; width: 210mm; color: var(--ink);
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+    font-size: 9.4pt; line-height: 1.45;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  h1 { font-size: 14pt; margin: 0 0 1mm; letter-spacing: 0.5px; }
+  .sub { font-size: 9pt; color: var(--muted); margin-bottom: 4mm; }
+  h2 { font-size: 10.6pt; color: var(--accent); margin: 3.6mm 0 1.4mm; padding-bottom: 0.8mm;
+       border-bottom: 1.2px solid var(--accent); }
+  p { margin: 0 0 2mm; }
+  ul, ol { margin: 0 0 2mm; padding-left: 5.5mm; }
+  li { margin-bottom: 1mm; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.9pt; margin: 1mm 0 2mm; }
+  th, td { border-bottom: 1px solid var(--line); padding: 0.9mm 1.4mm; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  code { font-family: Consolas, monospace; font-size: 9pt; }
+  .quote { border-left: 2.4px solid var(--accent); padding-left: 2.4mm; color: #333; margin: 2mm 0; }
+  .shot { margin: 3mm 0 0; }
+  .shot img { width: 86mm; display: block; border: 1px solid var(--line); }
+  .shot .cap { font-size: 8.4pt; color: var(--muted); margin-top: 1mm; }
+  .links { font-size: 8.8pt; color: var(--muted); }
+  strong { font-weight: 600; }
+  li, table { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<h1>AI 应用案例：PolicyDesk —— 制度问答 Agent</h1>
+<div class="sub">周语昕 ｜ 独立开发 ｜ 2026.09 – 2026.11 ｜ 求职方向：AI 应用开发（实习）</div>
+
+<h2>一、做了什么（解决什么问题）</h2>
+<p>员工和学生查制度（请假谁批、报销比例、处分等级、年假折算）通常要翻 PDF，答案没有出处，
+用通用大模型问又容易编。<strong>PolicyDesk</strong> 解决三件事：</p>
+<ol>
+  <li><strong>自己查</strong>：Agent 决定查几次、查什么，不是固定一条检索管线；</li>
+  <li><strong>有出处</strong>：每条答案下面给原文条款，可核对；</li>
+  <li><strong>不编</strong>：库里没有资料就明确拒答，并说明「查不到」。</li>
+</ol>
+<p>前端实时显示每一步（工具、参数、耗时、命中几条），过程不可信时答案不算数。</p>
+
+<h2>二、用了什么工具、怎么用</h2>
+<p><strong>AI 编程工具</strong>：Claude Code 类 CLI Agent（日常写实现、排错、生成测试）。<br />
+<strong>技术栈</strong>：Python + FastAPI · Java 17 / Spring Boot 3 · Vue 3 + TypeScript · MySQL 8 + Redis · Docker Compose。</p>
+<p><strong>我怎么用它</strong>（不是「让它写我复制」）：</p>
+<ul>
+  <li>先定约束：项目里放规则文件与模板，让它按既有风格改，而不是另起一套；</li>
+  <li>先写测试再改逻辑，改完自己读 diff，跑不通就回退；</li>
+  <li>关键判断自己做 —— 下面的例子说明「审查」具体长什么样。</li>
+</ul>
+<p><strong>一个真实的审查例子</strong>：Java 要透传 SSE，AI 给的方案是 <code>RestClient.exchange</code> 拿
+<code>InputStream</code>。照它写完跑出 500，报 <code>stream is closed</code>。我判断是<strong>回调一结束流就被关</strong>，
+先试 <code>Supplier</code> 只推迟了打开、救不了流本身；换成 JDK <code>java.net.http.HttpClient</code> 的
+<code>BodyHandlers.ofInputStream()</code> 才拿到活的流。这类问题只能靠读源码与实测，不能靠信。</p>
+<p><strong>如实说明没做过的</strong>：没有用过 Dify / Coze。替代经验是<strong>手写 MCP 客户端与服务端</strong>
+（stdio 传输 + JSON-RPC，含协议测试），以及 Agent 循环与工具调用的完整实现。</p>
+
+<h2>三、结果怎么样</h2>
+<table>
+  <tr><th>指标</th><th>结果</th><th>出处</th></tr>
+  <tr><td>gold 条款命中</td><td><strong>42/44</strong></td><td>105 题盲出独立集，<code>eval/reports/agent-baseline.md</code></td></tr>
+  <tr><td>拒答率</td><td><strong>40/61</strong></td><td>同上</td></tr>
+  <tr><td>与同刻 <code>/chat</code> 对比</td><td>打平（1 胜 2 负，均在噪声带内）</td><td>配对 + exact McNemar</td></tr>
+  <tr><td>测试</td><td>63 后端 + 16 前端 + 541 算法层</td><td>pytest / vitest / <code>@Test</code> 计数</td></tr>
+  <tr><td>CI</td><td>3 个 job 全绿（java 22s / web 15s / deploy 14s）</td><td>GitHub Actions 实测</td></tr>
+  <tr><td>门禁拦下的真实退化</td><td>改写问法可绕过拒答，修复后 <strong>26/61 → 40/61</strong></td><td>实验记录</td></tr>
+  <tr><td>自动化收益</td><td>105 题跑批约 <strong>25 分钟</strong>，报告与对照表自动生成</td><td>实测</td></tr>
+</table>
+
+<p><strong>交付形态</strong>：Docker Compose 五容器（web / api / ai / mysql / redis）、Nginx 反向代理、
+Cloudflare Tunnel 对外；两个仓库 CI 均绿。</p>
+<p>时间线与评测报告截图：<code>docs/images/agent-timeline.png</code>（仓库内可直接打开）。</p>
+
+<p class="links">仓库：github.com/inwardzyx/policy-desk（全栈应用） · github.com/inwardzyx/campus-policy-rag（检索与评测）</p>
+
+
+
+</body>
+</html>
