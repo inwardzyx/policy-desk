@@ -42,7 +42,7 @@ class PythonAiClientTest {
         server = MockRestServiceServer.bindTo(builder).build();
         RestClient restClient = builder.build();
         PythonAiProperties props = new PythonAiProperties("http://ai.test", TOKEN, 2000, 60000);
-        client = new PythonAiClient(restClient, props);
+        client = new PythonAiClient(restClient, props, new AiGuard());
     }
 
     @Test

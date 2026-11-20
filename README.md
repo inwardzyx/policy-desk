@@ -19,7 +19,7 @@
 
 | 检查 | 覆盖什么 |
 |---|---|
-| `java` | `mvn test`（63 条，H2 内存库，不连 MySQL） |
+| `java` | `mvn test`（67 条，H2 内存库，不连 MySQL） |
 | `web` | `npm ci` → `vue-tsc --noEmit` + `vite build` → `vitest`（4 条） |
 | `deploy` | `docker compose config -q` + `nginx -t` + `.ps1` 编码（静态校验，不起容器） |
 

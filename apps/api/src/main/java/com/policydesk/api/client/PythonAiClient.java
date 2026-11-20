@@ -26,11 +26,14 @@ public class PythonAiClient {
     private final RestClient http;
     private final String internalToken;
     private final String baseUrl;
+    /** 熔断 + 并发隔离 + trace id：见 `AiGuard` 顶部的取舍说明。 */
+    private final AiGuard guard;
 
-    public PythonAiClient(RestClient pythonAiRestClient, PythonAiProperties props) {
+    public PythonAiClient(RestClient pythonAiRestClient, PythonAiProperties props, AiGuard guard) {
         this.http = pythonAiRestClient;
         this.internalToken = props.internalToken();
         this.baseUrl = props.baseUrl();
+        this.guard = guard;
     }
 
     /**
@@ -45,14 +48,14 @@ public class PythonAiClient {
      */
     public Dto.ChatResponse chat(String question, String namespace, List<String> acl, String sessionId) {
         try {
-            return http.post()
+            return guard.call(() -> http.post()
                     .uri("/internal/chat")
                     .header("X-Internal-Token", internalToken)
                     .header("X-Auth-Roles", String.join(",", acl))
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new Dto.ChatRequest(question, namespace, sessionId))
                     .retrieve()
-                    .body(Dto.ChatResponse.class);
+                    .body(Dto.ChatResponse.class));
         } catch (RestClientResponseException e) {
             // ★ 不把上游的原始 body 直接透给浏览器：里面可能带 Python 的栈信息。
             //   只保留状态码与一句可判断的摘要，原文进日志。
@@ -73,14 +76,14 @@ public class PythonAiClient {
      */
     public Dto.AgentResponse agent(String question, List<String> acl) {
         try {
-            return http.post()
+            return guard.call(() -> http.post()
                     .uri("/agent")
                     .header("X-Internal-Token", internalToken)
                     .header("X-Auth-Roles", String.join(",", acl))
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new Dto.AgentRequest(question, null, null))
                     .retrieve()
-                    .body(Dto.AgentResponse.class);
+                    .body(Dto.AgentResponse.class));
         } catch (RestClientResponseException e) {
             throw new PythonAiException(e.getStatusCode().value(), e.getResponseBodyAsString(), e);
         }

@@ -42,6 +42,15 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(PythonAiClient.PythonAiException.class)
     public ProblemDetail onUpstreamError(PythonAiClient.PythonAiException e) {
+        // ★ 503 是我们自己护栏给的（熔断打开 / 并发隔离满），不是上游返回的 —— 要分开说，
+        //   否则查日志时分不清"Python 挂了"和"我们主动拒绝了"。
+        if (e.upstreamStatus() == 503) {
+            log.warn("AI 调用被护栏拒绝：{}", e.getMessage());
+            ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+            pd.setTitle("AI 服务暂不可用（熔断 / 隔离）");
+            pd.setDetail(e.getMessage());
+            return pd;
+        }
         log.warn("AI 服务返回错误 status={} body={}", e.upstreamStatus(), e.getMessage());
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_GATEWAY);
         pd.setTitle("AI 服务返回错误");
