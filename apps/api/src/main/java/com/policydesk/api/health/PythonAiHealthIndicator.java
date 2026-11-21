@@ -1,5 +1,6 @@
 package com.policydesk.api.health;
 
+import com.policydesk.api.client.AiGuard;
 import com.policydesk.api.client.Dto;
 import com.policydesk.api.client.PythonAiClient;
 import org.springframework.boot.actuate.health.Health;
@@ -15,20 +16,30 @@ import org.springframework.stereotype.Component;
  *
  * <p>★ 它会被 {@code show-details: always} 展开成 {@code components.pythonAi}，
  * 于是 {@code curl /actuator/health | jq} 一眼能看到上游状态与块数。
+ *
+ * <p>★★ 2026-11-21 修：**健康检查也要走熔断器**。
+ * 原来这里直接 {@code ai.health()}，实测（compose 拓扑、把 ai 容器停掉）
+ * 每次健康检查都要真打上游、等 **~2.2 秒**才回 DOWN —— 编排器/监控高频轮询时，
+ * 这等于把"上游挂了"放大成"Java 也快没响应了"，正是本项目记过的"防护把自己变成故障"。
+ * 现在用 {@code AiGuard} 的**熔断器**（不占 Bulkhead 名额：健康检查不该和用户请求抢并发，
+ * 否则一拥堵就会出现"明明 AI 好好的、健康检查却 DOWN"的假红）：
+ * 熔断打开时 {@code CallNotPermittedException} 立刻抛出 ⇒ DOWN 在毫秒级返回。
  */
 @Component
 public class PythonAiHealthIndicator implements HealthIndicator {
 
     private final PythonAiClient ai;
+    private final AiGuard guard;
 
-    public PythonAiHealthIndicator(PythonAiClient ai) {
+    public PythonAiHealthIndicator(PythonAiClient ai, AiGuard guard) {
         this.ai = ai;
+        this.guard = guard;
     }
 
     @Override
     public Health health() {
         try {
-            Dto.Health h = ai.health();
+            Dto.Health h = guard.breaker().executeSupplier(() -> ai.health());
             return Health.up()
                     .withDetail("chunks", h == null ? -1 : h.chunks())
                     .withDetail("rejected", h == null ? -1 : h.rejected())
@@ -40,3 +51,4 @@ public class PythonAiHealthIndicator implements HealthIndicator {
         }
     }
 }
+

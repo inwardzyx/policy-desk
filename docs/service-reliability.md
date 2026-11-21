@@ -40,6 +40,9 @@
 - **第 4 次开始 503**：熔断器在 4 次失败后打开，之后**不再尝试打上游**，直接快速失败；
 - **10 ms vs 530 ms**：正常路径要等模型，故障路径立刻返回 —— 这就是护栏的意义；
 - **`/actuator/health` 48 ms**：熔断打开时，**别的接口没有被拖慢**（隔离生效）；
+  ⚠️ **2026-11-21 更正**：这条只在"健康检查不走熔断器"时成立。真实拓扑里
+  `PythonAiHealthIndicator` 一开始是**直接打上游**的，AI 停掉时每次健康检查要等 **~2.2 秒**
+  才回 DOWN（见第五节之后的"七、整栈 smoke"）。已改成走熔断器，现在毫秒级返回 DOWN。
 - **恢复后第一次 4113 ms**：半开状态放一个请求去试探，成功后才关闭熔断，之后回到正常延迟。
 
 ## 四、判据（可复跑）
@@ -136,4 +139,59 @@ docker run -d --name edge-limit-check -p 8063:80 --add-host=host.docker.internal
   `MAX_CONC_PER_CALLER=2`、`GLOBAL_CONC=2`、`CONC_WAIT_MS=250`、`EMBED_THREADS=4`。
   **它们之间的关系**：`GLOBAL_CONC × EMBED_THREADS ≲ 机器核数`（容器里 `os.cpu_count()`
   看到的是宿主机核数，不能靠"容器只有 2 核"来兜），改之前先算。
+
+---
+
+## 七、整栈 smoke（2026-11-21）：在真实拓扑里再验一遍
+
+前面的 §二 是在**开发形态**（Python 8028 跑在宿主）里做的故障注入。这一节是
+`docker compose up` 起五容器（web/api/ai/mysql/redis）之后的**同一批判据**，
+全部经 `nginx(8088) → Java(api) → Python(ai)`。
+
+### 7.1 结果
+
+| 检查 | 结果 |
+|---|---|
+| `docker compose ps` | web / api / ai / mysql / redis **全部 healthy** |
+| `GET /` | 200 |
+| `POST /api/auth/login`（hr_demo） | 200，62ms |
+| `POST /api/chat`（命中文档） | **200 / 3065ms**，`knowledge_hit=true`，1 条引用 |
+| `POST /api/chat`（库里没有） | 200 / 1869ms，`knowledge_hit=false`，明确拒答 |
+| **入口限速**（突发 60 次） | **24 × 401（放了，Java 判未登录）+ 36 × 429**，429 带 `Retry-After: 2` |
+| **熔断**（停 ai 后连打 6 次） | **504、504**（307ms / 20ms，真连接失败）→ **503 × 4**（12–36ms，熔断打开） |
+| **恢复**（重启 ai） | 第 1 次 2462ms（半开试探）→ 之后 648–1038ms，全 200 |
+| **健康检查**（熔断期，容器内直连 8081） | **177ms** 返回 `{"status":"DOWN", ..., "pythonAi":...}`（≈150ms 是 `docker exec` 开销） |
+
+### 7.2 两个真坑（都差点让我写错结论）
+
+**① 镜像里的 jar 是旧的，第一次 smoke 的 6 次 504 是"旧代码"的行为。**
+`policy-desk-api:local` 镜像构建于 **11-05**，而熔断是 **11-20** 才提交的 ——
+所以第一次"停 ai 连打 6 次"全是 504（旧代码只有超时映射，根本没有熔断器）。
+我一度准备写"熔断在 compose 里没生效"。核对了三处才发现是产物过期：
+
+```powershell
+docker image inspect policy-desk-api:local --format '{{.Created}}'   # 2026-11-05
+git log -1 --format='%ci' -- apps/api/src/main/java/com/policydesk/api/client/AiGuard.java  # 2026-11-20
+```
+
+⇒ **smoke 之前先确认"跑的是不是 HEAD 的产物"**：`mvn package` → `docker build` → `up -d --force-recreate`。
+和本项目"数字要能指回产物"是同一条纪律，只不过这次指的产物是**镜像**。
+（顺带：`target/*.jar` 的 mtime 在 repackage 后可能不变，别拿它判断新旧 —— 看 size 或直接解包看有没有新类。）
+
+**② `/actuator/health` 原来绕过熔断器，AI 挂了它要等 ~2.2 秒。**
+实测（同一方法、同一个故障）：修前 **2191 / 2192 / 2179 ms**，修后 **177 ms**（≈exec 开销）。
+后果是"上游挂了"被放大成"Java 的监控也卡住"，正是本项目记过的**"防护把自己变成故障"**。
+修法：`PythonAiHealthIndicator` 改走 `AiGuard.breaker()`（**只走熔断器，不走 Bulkhead** ——
+健康检查不该和用户请求抢并发，否则一拥堵就会出现"AI 好好的、健康检查却 DOWN"的假红）。
+`mvn test` 67 条全绿。
+
+### 7.3 演示账号配额（smoke 会打光）
+
+配额按人算，演示账号各 **12 次/天**（`quota:<userId>:<date>`，Redis）。打光了会得到
+`429 今日配额已用尽（13/12）`，**不是熔断**（这两个 429 长得像，别混）：
+
+```powershell
+docker compose --env-file .env exec -T redis redis-cli DEL quota:1:2026-11-21 quota:2:2026-11-21
+```
+
 
