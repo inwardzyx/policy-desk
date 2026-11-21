@@ -69,3 +69,71 @@ D:\tools\apache-maven-3.9.16\bin\mvn.cmd -B -ntp -f apps\api\pom.xml test
 真正会咬人的是"上游挂了/慢了怎么办"，所以我只补熔断、隔离、快速失败，
 并用故障注入证明它确实生效。
 ```
+
+---
+
+## 六、入口层限速（2026-11-21 补）
+
+### 6.1 为什么加这一层
+
+算法仓库实测（`campus-policy-rag` 的 `experiments/noisy-neighbor.md` §九/§十）：
+**每秒上千次「拒绝」本身就能把应用进程的事件循环占满** —— 那时候连不碰检索的 `/health`
+都慢了 30 倍（3.3ms → 102.1ms），而 CPU 只到 57%。
+
+把"拒绝"放到**入口**（nginx，C 进程、自己的事件循环）之后，同样的风暴只让入口忙：
+同一台应用、同款客户端，邻居的 p95 劣化从 **+623% → +179%**。
+
+### 6.2 加了什么（`deploy/nginx.conf`）
+
+```nginx
+limit_req_zone  $binary_remote_addr zone=api_rate:10m rate=10r/s;
+limit_conn_zone $binary_remote_addr zone=api_conn:10m;
+# 在 location /api/ 里：
+limit_req  zone=api_rate burst=20 nodelay;  limit_req_status  429;
+limit_conn api_conn 12;                     limit_conn_status 429;
+add_header Retry-After 2 always;
+```
+
+- **键 = `$binary_remote_addr`**：nginx 手上只有这个不会撒谎的标识。
+  `X-Client-Id` 这类自称头谁都能伪造（Python 侧 `limits.py` 默认就不信它们）。
+  ⚠️ **代价**：办公室共用一个出口 IP 时几个人共享同一个桶 —— 所以阈值给得宽。
+  等有可信租户标识（Java 下发 / 网关注入）再换键，其它一行不动。
+- **每 IP 12 条连接**：不能设小 —— SSE 流式回答会一直占着连接（一次生成 5–30 秒），
+  浏览器同域还会并发开几条，设 8 会把正常用户挡掉。
+- **`Retry-After`**：不带这个头，客户端会立刻重打 —— 那正是拒绝风暴的来源。
+
+### 6.3 怎么验（含一个会假绿的写法）
+
+规则是：**判据要先证明它会红**。下面的最小 conf 与本项目 `deploy/nginx.conf` 的
+zone/limit 行完全一致，上游换成本机一个静态文件服务（不用起 Java/Python）：
+
+```powershell
+# 上游（随便一个静态服务即可）
+D:\Python-project\.venv\Scripts\python.exe -m http.server 8064 --bind 127.0.0.1
+# 入口（把上面那段 conf 挂进 conf.d）
+docker run -d --name edge-limit-check -p 8063:80 --add-host=host.docker.internal:host-gateway `
+  -v <你的最小 conf>:/etc/nginx/conf.d/default.conf:ro nginx:latest
+```
+
+实测（2026-11-21）：低速 12 次（约 3 r/s）全部放行；**突发 60 次 → 21 过、39 个 429，带 `Retry-After: 2`**
+（21 = 1 + `burst=20`，与配置相符）。
+
+> ★ **别用 `return 200` 当"上游"**：`return` 在 **rewrite 阶段**就短路了，而 `limit_req`
+> 在 **preaccess 阶段**才跑 ⇒ 60 次突发**全部 200**，看起来"限速没生效"。
+> 我第一次就是这么验的，差点把"配置错了"记成"nginx 不生效"。换成真 `proxy_pass` 才见到 429。
+> 这是本项目"扫到 0 条要报红"那条纪律的另一个面：**没触发 ≠ 没问题，可能是判据根本没跑到。**
+
+### 6.4 部署形态下到底谁在限并发（别记错）
+
+```text
+宿主 → nginx(/api/ 每 IP 限速) → Java(Bulkhead 2 + 熔断) → Python ai:8000（不对外）
+```
+
+- `/search` 在部署形态下**没有对外入口**（Java 只打 `/internal/chat` 与 `/agent`），
+  所以 Python 侧的 `/search` 并发准入是**兜底**（给"直连 Python"的 dev/MCP 形态用）；
+- 真正在生产里起作用的并发上限是 **Java 的 Bulkhead(2)** + 这一层入口限速；
+- `deploy/docker-compose.yml` 现在也把 Python 侧那几个旋钮设上了：
+  `MAX_CONC_PER_CALLER=2`、`GLOBAL_CONC=2`、`CONC_WAIT_MS=250`、`EMBED_THREADS=4`。
+  **它们之间的关系**：`GLOBAL_CONC × EMBED_THREADS ≲ 机器核数`（容器里 `os.cpu_count()`
+  看到的是宿主机核数，不能靠"容器只有 2 核"来兜），改之前先算。
+

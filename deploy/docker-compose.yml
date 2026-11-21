@@ -58,6 +58,16 @@ services:
       # 生成走 DeepSeek：密钥从算法仓库的 .env 读（不进镜像、不进本仓库）
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:?请在 deploy/.env 里设置 DEEPSEEK_API_KEY}
       TZ: Asia/Shanghai
+      # ---- /search 的并发准入（2026-11-21）----
+      # ★ 部署形态下 /search **没有对外入口**（只有 Java 的 /internal/chat 与 /agent 进得来，
+      #   见 docs/service-reliability.md §六），所以这几只是"兜底"：
+      #   谁要是把 Python 端口暴露出去、或 MCP 工具在容器里直连，它们才真正起作用。
+      # ★ 这几个值之间的关系（调之前先算）：GLOBAL_CONC × EMBED_THREADS ≲ 机器核数。
+      #   容器里 os.cpu_count() 看到的是**宿主机**核数，所以不能靠"容器只有 2 核"来兜。
+      MAX_CONC_PER_CALLER: "2"     # 与 Java 的 Bulkhead(2) 同口径，不额外收紧
+      GLOBAL_CONC: "2"             # 每进程同时 2 个 /search（本镜像单进程，见 Dockerfile CMD）
+      CONC_WAIT_MS: "250"          # 忙时让请求先等一会儿 —— 被吵的一方不该被 429 打掉
+      EMBED_THREADS: "4"           # 2 × 4 = 8 线程，给事件循环和其它路径留出余量
     volumes:
       # 模型缓存（92MB）：挂卷之后重建镜像不用重下
       - model-cache:/root/.cache/fastembed
