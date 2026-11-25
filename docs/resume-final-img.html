@@ -2,101 +2,76 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8" />
-<title>周语昕 · 简历</title>
+<title>周语昕 - 简历</title>
 <style>
-  /* ★ 打印边距必须与 resume-final-img.html 的 padding 一致（11/12mm），
-     否则正文宽度不同：截图是 1 页，PDF 会挤成 2 页（2026-11-18 实测）。 */
   @page { size: A4; margin: 11mm 12mm; }
-
-  :root { --ink: #1b1b1b; --muted: #5b5b5b; --line: #e2e2e2; --accent: #1f4e79; }
-
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0; color: var(--ink);
-    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
-    font-size: 10pt; line-height: 1.36;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  :root {
+    --ink: #17202a;
+    --muted: #5b6b7c;
+    --accent: #1f4e79;
+    --line: #d6dee6;
   }
-
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; color: var(--ink);
+    font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+    font-size: 10pt; line-height: 1.42;
+  }
   h1 { font-size: 21pt; margin: 0 0 1.6mm; letter-spacing: 1.5px; font-weight: 600; }
-
-  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
-  .intent { font-size: 10.4pt; font-weight: 600; color: var(--accent); margin-bottom: 1.8mm; }
+  .intent { font-size: 10.6pt; color: var(--accent); font-weight: 600; margin: 0 0 1.4mm; }
   .contact { font-size: 9.5pt; color: var(--muted); line-height: 1.6; }
-  .result-first {
+  .summary {
     font-size: 9.6pt; margin: 2.2mm 0 0; padding: 1.7mm 2.4mm;
     background: #f4f7fa; border-radius: 2px; line-height: 1.5;
   }
-  .photo { width: 23mm; height: 31mm; border: 1px solid var(--line); border-radius: 2px; object-fit: cover; flex: 0 0 auto; }
-
   h2 {
-    font-size: 11.2pt; margin: 2.6mm 0 1.2mm; padding-bottom: 1.0mm;
-    border-bottom: 1.4px solid var(--accent); color: var(--accent); letter-spacing: 0.5px;
+    font-size: 11.4pt; color: var(--accent); border-bottom: 1px solid var(--line);
+    margin: 3.0mm 0 1.4mm; padding-bottom: 1.0mm;
   }
-
-  h3 { font-size: 10.8pt; margin: 0 0 1.4mm; }
-  h3 .role { font-weight: 400; color: var(--muted); font-size: 9.4pt; }
-  h3 .when { font-weight: 400; color: var(--muted); font-size: 9.4pt; float: right; }
-
-  .desc { margin: 0 0 1.0mm; line-height: 1.42; }
-  .stack { font-size: 9pt; color: var(--muted); margin: 0 0 1.2mm; line-height: 1.45; }
-
-  .lab { font-size: 9.8pt; font-weight: 600; color: var(--accent); margin: 1.8mm 0 0.8mm; }
-
+  h3 { font-size: 10.8pt; margin: 0 0 1.2mm; }
+  .role { font-weight: 400; color: var(--muted); font-size: 9.4pt; }
+  .when { float: right; font-weight: 400; color: var(--muted); font-size: 9.2pt; }
+  .desc { margin: 0 0 1.2mm; line-height: 1.5; }
+  .stack { font-size: 9pt; color: var(--muted); margin: 0 0 1.4mm; line-height: 1.45; }
+  .lab { font-size: 9.8pt; font-weight: 600; color: var(--accent); margin: 2.0mm 0 0.9mm; }
   ul { margin: 0; padding-left: 5mm; }
-  li { margin-bottom: 0.9mm; }
-  li::marker { color: var(--accent); }
-
-  b { font-weight: 600; }
-  .kw { color: var(--accent); font-weight: 600; }
-  code { font-family: Consolas, monospace; font-size: 9.4pt; }
-  p { margin: 0; }
-
-
-  .skills { display: grid; grid-template-columns: 23mm 1fr; gap: 1.6mm 3.4mm; font-size: 9.6pt; }
-  .skills .k { color: var(--accent); font-weight: 600; padding-top: 0.2mm; }
-
-  li, h3 { break-inside: avoid; }
+  li { margin: 0 0 0.75mm; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; background: #eef2f6; padding: 0 1px; }
+  .result-first {
+    font-size: 9.6pt; margin: 1.6mm 0 0; padding: 1.4mm 2.2mm;
+    background: #f4f7fa; border-left: 2.5px solid var(--accent); line-height: 1.5;
+  }
+  .skill-table { width: 100%; border-collapse: collapse; }
+  .skill-table th {
+    text-align: left; font-weight: 600; color: var(--accent); font-size: 9.4pt;
+    width: 22mm; vertical-align: top; padding: 0.9mm 0;
+  }
+  .skill-table td { vertical-align: top; padding: 0.9mm 0; line-height: 1.45; }
   a { color: var(--accent); text-decoration: none; }
   body { width: 210mm; min-height: 297mm; padding: 11mm 12mm; margin: 0 auto; background: #fff; }
 </style>
 </head>
 <body>
-
-<div class="head">
-  <div>
-    <h1>周语昕</h1>
-    <div class="intent">求职意向：AI Agent 应用开发 / AI 应用开发（实习）</div>
-    <div class="contact">
-      13022069636 ｜ zyx167167@qq.com ｜
-      GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（三个仓库：全栈应用 + 检索/评测 + 发布门禁）<br />
-      韩山师范学院 ｜ 软件工程（五年制专本衔接）｜ 2025–2030<br />
-      到岗时间：可立即到岗，每周 4–5 天，可连续 6 个月
-    </div>
-  </div>
-  <!-- 照片位：照片存成同目录 photo.jpg 后，删掉下面这行的注释
-  <img class="photo" src="photo.jpg" alt="" /> -->
+<h1>周语昕</h1>
+<div class="intent">求职意向：AI Agent 应用开发 / AI 应用（实习）</div>
+<div class="contact">
+13022069636 &nbsp;|&nbsp; zyx167167@qq.com &nbsp;|&nbsp; GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（三个仓库：全栈应用 + 检索/评测 + 发布门禁）<br />
+韩山师范学院 &nbsp;|&nbsp; 软件工程（五年制专转本衔接）&nbsp;|&nbsp; 2025–2030<br />
+到岗时间：可立即到岗，每周 4–5 天，可连续 6 个月
 </div>
 
 <h2>专业技能</h2>
-<div class="skills">
-  <div class="k">Agent 工程</div>
-  <div>熟悉 Agent 循环与工具调用：能手写循环（轮次上限 + token 预算）、按 schema 校验工具参数、
-    把失败按超时 / 参数 / 权限归类；MCP 客户端与服务端都手写（stdio + JSON-RPC）</div>
-
-  <div class="k">评测与质量</div>
-  <div>熟悉评测门禁：能搭 105 题盲出独立集与 9 个场景套件 / 156 条场景用例，
-    先量噪声地板再上 exact McNemar，判据变更即判旧报告失效</div>
-
-  <div class="k">后端与前端</div>
-  <div>熟悉 Python/FastAPI 与 Java/Spring Boot 3：能做 REST 接口、SSE 流式透传、
-    JWT 与角色到 ACL 的权限投影、审计与降级；Vue 3 + TypeScript 写时间线组件</div>
-
-  <div class="k">检索与交付</div>
-  <div>熟悉检索链路与交付：bge-small-zh 向量检索 + BM25 + RRF 融合 + 精排；
-    Docker Compose 五容器部署、Nginx 反代、Cloudflare Tunnel、GitHub Actions</div>
-</div>
+<table class="skill-table">
+  <tr><th>Agent 工程</th><td>熟悉 Agent 循环与工具调用：手写循环（轮次上限 + token 预算）、按 schema 校验工具参数、失败按超时 / 参数 / 权限归因；
+    熟悉 MCP 协议两端（stdio + JSON-RPC），能用 LangGraph 重写同一控制流做对照。</td></tr>
+  <tr><th>检索与评测</th><td>熟悉向量 + 关键词混合检索与精排（bge-small-zh / BM25 / RRF / 精排四段）；
+    熟悉评测方法论：105 题盲出独立集 + 9 个场景套件 / 156 条场景用例，先量噪声地板再上 exact McNemar，
+    能判断一个指标差异是真实的还是抖动。</td></tr>
+  <tr><th>后端与并发</th><td>熟悉 Python/FastAPI 与 Java/Spring Boot 3：REST 接口、SSE 流式透传、JWT 与角色到 ACL 的权限投影；
+    会做状态机 + 乐观锁（rev CAS）、发号器原子分配、outbox + Redis Streams 至少一次投递与消费端幂等。</td></tr>
+  <tr><th>交付与运维</th><td>熟悉检索链路与交付：Docker Compose 六容器部署、Nginx 反代与入口限流、Cloudflare Tunnel、GitHub Actions；
+    会写端到端判据脚本并做变异验证（改坏实现确认判据变红）。</td></tr>
+</table>
 
 <h2>项目经历</h2>
 
@@ -114,12 +89,19 @@
   <li><b>工具调用</b>：循环手写为 <code>for rnd in range(rounds_limit)</code>（默认 6 轮），
     模型选工具 → 执行 → 结果回填；工具走 MCP（JSON-RPC 独立进程），参数按 schema 校验，
     失败按超时 / 参数 / 权限归因；另用 LangGraph 重写做对照，控制流只差 3 处。</li>
-  <li><b>拒答与检索</b>：以原问题的过闸结果为准，改写问法命中无关条款也不推翻（26/61 → 40/61）；
-    bge-small-zh 向量 + BM25 + RRF + 精排，上下文八层 + token 预算 + trace，多轮保留最近 3 轮。</li>
-  <li><b>受限执行与流式</b>：容器内跑代码（断网 / 只读 / 限内存 / 限进程，四类越界都实测拦截）；
-    SSE 穿过 FastAPI 与 Spring Boot 两层，前端按事件渲染时间线，16 条单测钉住「算不算成功」。</li>
-  <li><b>评测与交付</b>：105 题盲出集 + 9 套件 / 156 用例，先量噪声地板再上 exact McNemar；
-    Docker 五容器 + Nginx + Tunnel，CI 覆盖后端 / 前端 / 容器 / 评测。</li>
+  <li><b>拒答</b>：以原问题的过闸结果为准，改写问法命中无关条款也不推翻；
+    修复前可绕过，修复后拒答 26/61 → 40/61（同刻 <code>/chat</code> 41/61）。</li>
+  <li><b>检索与上下文</b>：bge-small-zh 向量 + BM25 + RRF 融合 + 精排；上下文八层 + token 预算 + trace；
+    多轮会话保留最近 3 轮、更早截断（响应报 <code>session_used</code>），超预算显式收尾。</li>
+  <li><b>受限执行</b>：容器内跑代码（断网 / 只读 / 限内存 / 限进程），超时、OOM、联网、写盘
+    四类越界都实测拦截过；默认关闭，按需开启。</li>
+  <li><b>流式与前端</b>：SSE 穿过 FastAPI 与 Spring Boot 两层（Java 只转字节）；前端按事件渲染时间线，
+    16 条单测钉住「算不算成功」，缺 <code>result</code> 即判状态未知。</li>
+  <li><b>评测与交付</b>：105 题盲出集 + 9 套件 / 156 用例，先量噪声地板再上 exact McNemar，
+    能定位是检索、编排还是数据的问题；Docker 五容器 + Nginx + Tunnel，CI 覆盖后端 / 前端 / 容器 / 评测。</li>
+  <li><b>并发与隔离</b>：一个租户 48 并发把邻居 p95 从 <b>39</b>ms 抬到 <b>292</b>ms；限并发、加 4 worker 都无效
+    （后者 <b>+845%</b>，上限按进程算）；用 <code>/health</code> 对照定位到「拒绝风暴占满事件循环」，
+    最终收敛总预算 + 入口 Nginx 限速，降到 <b>+179%</b>。</li>
 </ul>
 
 <div class="result-first">
@@ -127,32 +109,70 @@
   一次问答约 <b>5 秒</b>、<b>2 步</b>工具调用 · 测试 <b>67</b> 条后端 + <b>16</b> 条前端 + <b>548</b> 条算法层
 </div>
 
+<div style="page-break-before: always;"></div>
+
 <h3>AI 发布门禁平台<span class="role">（独立开发）</span><span class="when">2026.11</span></h3>
 <div class="desc">
-  <b>项目背景</b>：改一版 prompt / 换一次模型之后，"线上会不会变差、最近改了什么、出事怎么退"三件事答不出来。
+  <b>项目背景</b>：问答类应用的迭代很轻——改几句话术、换一版模型就是一次发布，但发布后三件事答不出来：
+  <b>有没有变差</b>（没有上线前量化对比，只能等用户抱怨）、<b>最近改了什么</b>（配置散在代码和 .env 里，没有版本号）、
+  <b>出事怎么退</b>（手工改回去或重新发旧代码）。<br />
   产品：配置版本化 → 灰度发布 → 自动跑评测门禁 → 不达标自动回滚，全过程可审计。
 </div>
 <div class="stack">
-  Spring Boot 3 × 3 服务 + Python 执行器 ｜ MySQL（每服务独立库）｜ Redis Streams / outbox ｜ JDK HttpClient
+  Spring Boot 3 × 3 服务 + Python 执行器 ｜ MySQL（每服务独立库）｜ Redis Streams / outbox ｜ JDK HttpClient ｜ Docker Compose
 </div>
 
 <div class="lab">项目详情</div>
 <ul>
   <li><b>服务拆分</b>：配置 / 发布 / 门禁三个服务各自独立库（读多写少 vs 事务写 vs 长任务，故障域不同）；
-    跨服务调用带超时且 <b>fail-closed</b>（版本校验不通过就不许发布）。</li>
-  <li><b>并发与幂等</b>：版本号用发号器表原子分配（<b>30</b> 并发零重号）；状态迁移用 <code>rev</code> 乐观锁（过期 rev → 409）；
-    outbox + Redis Streams 至少一次投递，消费端唯一索引去重（同一事件投 <b>100</b> 次只建 <b>1</b> 个任务）。</li>
-  <li><b>灰度与门禁</b>：SHA-256 稳定分桶（同租户 1000 次结论一致，并用 Python 独立实现交叉验证）；
-    门禁真跑 <b>20</b> 题评测（18/20），不达标<b>自动回滚</b>；回滚是指针原子切换，而非重新发布。</li>
+    跨服务调用带超时且 <b>fail-closed</b>——版本校验不通过就不许发布，而不是"猜它存在"。</li>
+  <li><b>并发与幂等</b>：版本号用发号器表原子分配（<b>30</b> 并发零重号，第一版 <code>MAX(version)+1</code> 有 19/30 撞唯一键）；
+    状态迁移用 <code>rev</code> 乐观锁（过期 rev → 409，不是 500 也不是静默成功）；
+    建任务按 <code>event_id</code> 唯一索引幂等（同一事件投 <b>100</b> 次只建 <b>1</b> 个任务）。</li>
+  <li><b>灰度与回滚</b>：SHA-256 稳定分桶（同租户 1000 次结论一致，并用 Python 独立实现交叉验证桶号）；
+    回滚 = <code>current_release</code> 指针原子切换（O(1)、幂等），而不是重新发布旧版本——
+    重新发布要再走一遍校验与门禁，慢且可能失败。</li>
+  <li><b>异步链路</b>：发布与"门禁该跑了"在同一事务里写 outbox，后台扫表投递到 Redis Streams（<b>至少一次</b>），
+    消费端先处理成功再 ack；执行器宕机时发布照常成功、任务不丢，恢复后由扫描器重投自愈。
+    真评测要 20–80 秒，据此把"提交失败"与"还在跑"分开（前者 5 秒重投，后者 300 秒租约）。</li>
+  <li><b>门禁判定</b>：评测真实跑（20 题均匀抽样，18/20 = 0.90，两次一致），不达标<b>自动回滚</b>、通过则保持 CANARY 等人放量；
+    阈值由<b>发布方自己声明</b>（改 prompt 与换模型风险不同，写死一个全局标准说不清"为什么放行"）；
+    结果回写幂等（同一 job 回调 3 次只生效一次，避免把指针再推一格）。</li>
+  <li><b>状态机与审计</b>：四态 <code>PENDING → CANARY → FULL → ROLLED_BACK</code>，规则收在枚举一处（非法迁移拒绝、回滚后不可复活），每次迁移留 operator / 时间 / 分数。</li>
+  <li><b>可观测与工程化</b>：traceId 随事件跨 <b>4</b> 个进程可串（异步靠事件体携带、不靠线程）；一条命令 <code>docker compose up</code> 起六容器；<b>16</b> 条单测 + 变异测试（改坏三处实现全部变红）。</li>
 </ul>
-<div class="desc">
-  <b>工程数据</b>：<code>/api/gray</code> 约 <b>2000</b> rps、p95 <b>15</b>ms · traceId 跨 <b>4</b> 进程可串 · 执行器宕机时任务不丢、恢复自愈
+
+<div class="result-first">
+  成果：<code>/api/gray</code>（每请求都要调的热路径）约 <b>2000</b> rps 饱和、16 并发内 p95 <b>15</b>ms；
+  11 条端到端判据全绿 · 执行器宕机时任务不丢、恢复后自愈 · 单次门禁 20 题 / <b>78</b> 秒
 </div>
+
+<h2>工程方法与质量</h2>
+<ul>
+  <li><b>判据先于实现</b>：两个项目共 11 条端到端判据 + 16 条单测，每条都能反向验证——
+    把实现改坏，判据必须变红；只绿不红的检查视为没写。</li>
+  <li><b>缺失 ≠ 零</b>：评测请求被限流时记 <code>errored</code> 而不是记 0 分；错误率超过 10% 直接拒绝判决，
+    宁可这一次不判，也不拿脏数据给出结论。</li>
+  <li><b>先量后改</b>：改性能/成本前先量基线（如评测噪声地板、p95 对照），结论用配对对照，
+    不拿两次独立运行的差值当结论。</li>
+  <li><b>假绿是最大风险</b>：遇到过三次"旧进程仍在服务旧代码"（旧 jar / 旧镜像 / 旧执行器），
+    现在让每个服务报出运行指纹，判据第一步先断言"我在测我以为的那个东西"。</li>
+</ul>
+
+<h2>关键判据一览</h2>
+<table class="skill-table">
+  <tr><th>幂等 / 并发</th><td>30 并发建版本 → 无重号 · 30 并发同 key 只有 1 条 · 过期 rev → 409</td></tr>
+  <tr><th>灰度</th><td>同租户 1000 次同结论 · 桶号与 Python 实现 20/20 一致 · 百分比单调</td></tr>
+  <tr><th>消息</th><td>同事件投 100 次 → 只建 1 个任务 · 消费后 pending = 0</td></tr>
+  <tr><th>门禁</th><td>真评测 18/20 · 门槛 0.80 通过 / 0.95 自动回滚 · 回调 3 次只生效 1 次</td></tr>
+  <tr><th>容量与可观测</th><td>/api/gray 约 2000 rps 饱和、16 并发内 p95 &lt; 16ms · traceId 跨 4 进程可串 · 门禁 20 题 / 78 秒</td></tr>
+  <tr><th>故障</th><td>执行器宕机：发布照常成功 · 任务不丢 · 恢复后扫描器重投自愈</td></tr>
+</table>
 
 <h2>其他</h2>
 <ul>
-  <li>仓库 <code>github.com/inwardzyx</code>：policy-desk 全栈应用、campus-policy-rag 检索与评测、ai-release-gate 发布门禁，均有 CI；
-    日常用 Claude Code 类工具写代码、自己审查与回滚；另接过飞书 Wiki 只读连接器。</li>
+  <li>仓库 <code>github.com/inwardzyx</code>：policy-desk、campus-policy-rag、ai-release-gate 三个仓库，均有 CI 与提交前检查。</li>
+  <li>开发方式：用 Claude Code 类工具写代码、自己审查与回滚；接过飞书开放平台 Wiki 只读连接器（token 换取、节点分页、错误码映射）。</li>
 </ul>
 
 </body>
