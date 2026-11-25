@@ -133,6 +133,52 @@ def loop_anchor_ok() -> tuple[bool, str]:
     return True, f"{actual}（默认 {max_rounds.group(1) if max_rounds else '?'} 轮）"
 
 
+def _round_half_up(x: float) -> int:
+    """四舍五入（Python 内置 round 是 half-to-even：round(178.5) == 178）。"""
+    return int(x + 0.5) if x >= 0 else -int(-x + 0.5)
+
+
+def check_noisy_neighbor(plain: str) -> tuple[bool, str]:
+    """简历里的 652 / 845 / 179 / 39 / 292 / 48 全部从 round2 产物现算。
+
+    ★ 为什么单独一条：这组数字以前散在 HANDOFF 与 service-reliability.md 里，
+      两份文档口径不同（+652% vs +623%），简历又是第三种写法（只写 ms 不写百分比）。
+      数字一分散，就一定会漂。
+    """
+    import json as _json
+    data = _json.loads(_text(RAG / "experiments" / "noisy-neighbor-round2.json"))
+    arms = {a["arm"]: a for a in data["arms"]}
+
+    r0 = arms["R0_现状_端点准入"]
+    base_p95 = _round_half_up(r0["phases"]["1_基线_B单独"]["p95"])       # 38.8 → 39
+    noisy_p95 = _round_half_up(r0["phases"]["2_噪音_A打满"]["p95"])      # 291.9 → 292
+    conc = r0["测量参数"]["a_conc"]                                       # 48
+    deg_base = _round_half_up(r0["degradation_pct"])                      # 652
+    deg_worker = _round_half_up(arms["A5b_4worker"]["degradation_pct"])   # 845
+    deg_final = _round_half_up(arms["R3_修正配置_客户端退避200ms"]["degradation_pct"])  # 179
+
+    expect = {
+        "并发数": (rf"{conc}\s*并发", conc),
+        "基线 p95": (rf"从\s*{base_p95}\s*ms|{base_p95}\s*ms", base_p95),
+        "噪音 p95": (rf"{noisy_p95}\s*ms", noisy_p95),
+        "劣化 +652%": (r"\+(\d+)%", deg_base),
+        "4 worker +845%": (rf"\+{deg_worker}%", deg_worker),
+        "收敛 +179%": (rf"\+{deg_final}%", deg_final),
+    }
+    missing = [k for k, (pat, _) in expect.items() if not re.search(pat, plain)]
+    if missing:
+        return False, f"简历里缺这些锚：{missing}（产物值 conc={conc}, p95={base_p95}→{noisy_p95}, "
+    # 逐个值必须在简历里出现
+    for label, (pat, val) in expect.items():
+        if label in ("劣化 +652%", "4 worker +845%", "收敛 +179%"):
+            if not re.search(rf"\+{val}%", plain):
+                return False, f"{label}：简历里没有 +{val}%"
+        elif str(val) not in plain:
+            return False, f"{label}：简历里没有 {val}"
+    return True, (f"并发 {conc} / p95 {base_p95}→{noisy_p95} / "
+                  f"+{deg_base}% / 4worker +{deg_worker}% / 收敛 +{deg_final}%")
+
+
 def main() -> int:
     import argparse
 
@@ -180,6 +226,15 @@ def main() -> int:
         claim(r"(\d+) 题盲出独立集", n_heldout, "盲出独立集题数")
     else:
         print("SKIP 算法层测试数（外部仓库不在；CI 只 checkout 本仓库）")
+
+    # ---- noisy-neighbor 那组数字：从产物现算，不许手写 ----
+    if have_ext:
+        ok_nn, msg_nn = check_noisy_neighbor(plain)
+        print(f"noisy-neighbor        = {msg_nn}")
+        if not ok_nn:
+            problems.append(msg_nn)
+    else:
+        print("SKIP noisy-neighbor（外部仓库不在）")
 
     if loop is not None:
         if f"range({loop.split('（')[0]})" not in plain:
