@@ -15,7 +15,7 @@
   body {
     margin: 0; color: var(--ink);
     font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
-    font-size: 10pt; line-height: 1.45;
+    font-size: 10pt; line-height: 1.36;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
 
@@ -31,7 +31,7 @@
   .photo { width: 23mm; height: 31mm; border: 1px solid var(--line); border-radius: 2px; object-fit: cover; flex: 0 0 auto; }
 
   h2 {
-    font-size: 11.4pt; margin: 3.4mm 0 1.4mm; padding-bottom: 1.2mm;
+    font-size: 11.2pt; margin: 2.6mm 0 1.2mm; padding-bottom: 1.0mm;
     border-bottom: 1.4px solid var(--accent); color: var(--accent); letter-spacing: 0.5px;
   }
 
@@ -39,10 +39,10 @@
   h3 .role { font-weight: 400; color: var(--muted); font-size: 9.4pt; }
   h3 .when { font-weight: 400; color: var(--muted); font-size: 9.4pt; float: right; }
 
-  .desc { margin: 0 0 1.2mm; line-height: 1.55; }
-  .stack { font-size: 9pt; color: var(--muted); margin: 0 0 1.6mm; line-height: 1.5; }
+  .desc { margin: 0 0 1.0mm; line-height: 1.42; }
+  .stack { font-size: 9pt; color: var(--muted); margin: 0 0 1.2mm; line-height: 1.45; }
 
-  .lab { font-size: 9.8pt; font-weight: 600; color: var(--accent); margin: 2.4mm 0 1mm; }
+  .lab { font-size: 9.8pt; font-weight: 600; color: var(--accent); margin: 1.8mm 0 0.8mm; }
 
   ul { margin: 0; padding-left: 5mm; }
   li { margin-bottom: 0.9mm; }
@@ -70,7 +70,7 @@
     <div class="intent">求职意向：AI Agent 应用开发 / AI 应用开发（实习）</div>
     <div class="contact">
       13022069636 ｜ zyx167167@qq.com ｜
-      GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（两个仓库：全栈应用 + 检索/评测）<br />
+      GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（三个仓库：全栈应用 + 检索/评测 + 发布门禁）<br />
       韩山师范学院 ｜ 软件工程（五年制专本衔接）｜ 2025–2030<br />
       到岗时间：可立即到岗，每周 4–5 天，可连续 6 个月
     </div>
@@ -114,17 +114,12 @@
   <li><b>工具调用</b>：循环手写为 <code>for rnd in range(rounds_limit)</code>（默认 6 轮），
     模型选工具 → 执行 → 结果回填；工具走 MCP（JSON-RPC 独立进程），参数按 schema 校验，
     失败按超时 / 参数 / 权限归因；另用 LangGraph 重写做对照，控制流只差 3 处。</li>
-  <li><b>拒答</b>：以原问题的过闸结果为准，改写问法命中无关条款也不推翻；
-    修复前可绕过，修复后拒答 26/61 → 40/61（同刻 <code>/chat</code> 41/61）。</li>
-  <li><b>检索与上下文</b>：bge-small-zh 向量 + BM25 + RRF 融合 + 精排；上下文八层 + token 预算 + trace；
-    多轮会话保留最近 3 轮、更早截断（响应报 <code>session_used</code>），超预算显式收尾。</li>
-  <li><b>受限执行</b>：容器内跑代码（断网 / 只读 / 限内存 / 限进程），超时、OOM、联网、写盘
-    四类越界都实测拦截过；默认关闭，按需开启。</li>
-  <li><b>流式与前端</b>：SSE 穿过 FastAPI 与 Spring Boot 两层（Java 只转字节）；前端按事件渲染时间线，
-    16 条单测钉住「算不算成功」，缺 <code>result</code> 即判状态未知。</li>
-  <li><b>评测与交付</b>：105 题盲出集 + 9 套件 / 156 用例，先量噪声地板再上 exact McNemar，
-    能定位是检索、编排还是数据的问题；Docker 五容器 + Nginx + Tunnel，CI 覆盖后端 / 前端 / 容器 / 评测。</li>
-  <li><b>并发与隔离</b>：一个租户 48 并发把邻居 p95 从 <b>39</b>ms 抬到 <b>292</b>ms；限并发、加 4 worker 都无效（后者 <b>+845%</b>，上限按进程算）；用 <code>/health</code> 对照定位到「拒绝风暴占满事件循环」，最终收敛总预算 + 入口 Nginx 限速，降到 <b>+179%</b>。</li>
+  <li><b>拒答与检索</b>：以原问题的过闸结果为准，改写问法命中无关条款也不推翻（26/61 → 40/61）；
+    bge-small-zh 向量 + BM25 + RRF + 精排，上下文八层 + token 预算 + trace，多轮保留最近 3 轮。</li>
+  <li><b>受限执行与流式</b>：容器内跑代码（断网 / 只读 / 限内存 / 限进程，四类越界都实测拦截）；
+    SSE 穿过 FastAPI 与 Spring Boot 两层，前端按事件渲染时间线，16 条单测钉住「算不算成功」。</li>
+  <li><b>评测与交付</b>：105 题盲出集 + 9 套件 / 156 用例，先量噪声地板再上 exact McNemar；
+    Docker 五容器 + Nginx + Tunnel，CI 覆盖后端 / 前端 / 容器 / 评测。</li>
 </ul>
 
 <div class="result-first">
@@ -132,11 +127,32 @@
   一次问答约 <b>5 秒</b>、<b>2 步</b>工具调用 · 测试 <b>67</b> 条后端 + <b>16</b> 条前端 + <b>548</b> 条算法层
 </div>
 
+<h3>AI 发布门禁平台<span class="role">（独立开发）</span><span class="when">2026.11</span></h3>
+<div class="desc">
+  <b>项目背景</b>：改一版 prompt / 换一次模型之后，"线上会不会变差、最近改了什么、出事怎么退"三件事答不出来。
+  产品：配置版本化 → 灰度发布 → 自动跑评测门禁 → 不达标自动回滚，全过程可审计。
+</div>
+<div class="stack">
+  Spring Boot 3 × 3 服务 + Python 执行器 ｜ MySQL（每服务独立库）｜ Redis Streams / outbox ｜ JDK HttpClient
+</div>
+
+<div class="lab">项目详情</div>
+<ul>
+  <li><b>服务拆分</b>：配置 / 发布 / 门禁三个服务各自独立库（读多写少 vs 事务写 vs 长任务，故障域不同）；
+    跨服务调用带超时且 <b>fail-closed</b>（版本校验不通过就不许发布）。</li>
+  <li><b>并发与幂等</b>：版本号用发号器表原子分配（<b>30</b> 并发零重号）；状态迁移用 <code>rev</code> 乐观锁（过期 rev → 409）；
+    outbox + Redis Streams 至少一次投递，消费端唯一索引去重（同一事件投 <b>100</b> 次只建 <b>1</b> 个任务）。</li>
+  <li><b>灰度与门禁</b>：SHA-256 稳定分桶（同租户 1000 次结论一致，并用 Python 独立实现交叉验证）；
+    门禁真跑 <b>20</b> 题评测（18/20），不达标<b>自动回滚</b>；回滚是指针原子切换，而非重新发布。</li>
+</ul>
+<div class="desc">
+  <b>工程数据</b>：<code>/api/gray</code> 约 <b>2000</b> rps、p95 <b>15</b>ms · traceId 跨 <b>4</b> 进程可串 · 执行器宕机时任务不丢、恢复自愈
+</div>
+
 <h2>其他</h2>
 <ul>
-  <li>仓库：<code>github.com/inwardzyx</code>（policy-desk 全栈应用、campus-policy-rag 检索与评测；两仓有 CI 与提交前检查）。</li>
-  <li>开发方式：日常用 Claude Code 类工具写代码，自己负责审查、测试与回滚。</li>
-  <li>另接过飞书开放平台：知识库 Wiki 只读连接器（token 换取、节点分页、错误码映射），带测试。</li>
+  <li>仓库 <code>github.com/inwardzyx</code>：policy-desk 全栈应用、campus-policy-rag 检索与评测、ai-release-gate 发布门禁，均有 CI；
+    日常用 Claude Code 类工具写代码、自己审查与回滚；另接过飞书 Wiki 只读连接器。</li>
 </ul>
 
 </body>
