@@ -15,13 +15,13 @@
   html, body {
     margin: 0; color: var(--ink);
     font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
-    font-size: 10pt; line-height: 1.55;
+    font-size: 10pt; line-height: 1.50;
   }
   h1 { font-size: 21pt; margin: 0 0 1.6mm; letter-spacing: 1.5px; font-weight: 600; }
   .intent { font-size: 10.6pt; color: var(--accent); font-weight: 600; margin: 0 0 1.4mm; }
   .contact { font-size: 9.5pt; color: var(--muted); line-height: 1.6; }
   .summary {
-    font-size: 9.6pt; margin: 2.2mm 0 0; padding: 1.7mm 2.4mm;
+    font-size: 9.6pt; margin: 2.6mm 0 0; padding: 1.7mm 2.4mm;
     background: #f4f7fa; border-radius: 2px; line-height: 1.5;
   }
   h2 {
@@ -32,10 +32,13 @@
   .role { font-weight: 400; color: var(--muted); font-size: 9.4pt; }
   .when { float: right; font-weight: 400; color: var(--muted); font-size: 9.2pt; }
   .desc { margin: 0 0 1.5mm; line-height: 1.55; }
+  .desc-sub { margin: 1.2mm 0 0; line-height: 1.55; }
   .stack { font-size: 9pt; color: var(--muted); margin: 0 0 1.9mm; line-height: 1.5; }
   .lab { font-size: 9.8pt; font-weight: 600; color: var(--accent); margin: 2.5mm 0 1.2mm; }
   ul { margin: 0; padding-left: 5mm; }
-  li { margin: 0 0 1.5mm; }
+  li { margin: 0 0 2.0mm; }
+  /* 只给第一个项目的 7 条加一点条目间距：两页内容量不同，用局部参数配平 */
+  ul.pd li { margin-bottom: 2.5mm; }
   code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; background: #eef2f6; padding: 0 1px; }
   .result-first {
     font-size: 9.6pt; margin: 2.2mm 0 0; padding: 1.7mm 2.4mm;
@@ -43,7 +46,7 @@
   }
   .skill-table { width: 100%; border-collapse: collapse; }
   .skill-table th {
-    text-align: left; font-weight: 600; color: var(--accent); font-size: 9.4pt;
+    text-align: left; font-weight: 500; color: var(--muted); font-size: 9.4pt;
     width: 22mm; vertical-align: top; padding: 1.25mm 0;
   }
   .skill-table td { vertical-align: top; padding: 1.25mm 0; line-height: 1.5; }
@@ -57,7 +60,7 @@
 <h1>周语昕</h1>
 <div class="intent">求职意向：AI Agent 应用开发 / AI 应用（实习）</div>
 <div class="contact">
-13022069636 &nbsp;|&nbsp; zyx167167@qq.com &nbsp;|&nbsp; GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（三个仓库：全栈应用 + 检索/评测 + 发布门禁，均有 CI）<br />
+13022069636 &nbsp;|&nbsp; zyx167167@qq.com &nbsp;|&nbsp; GitHub：<a href="https://github.com/inwardzyx">github.com/inwardzyx</a>（三个仓库，均有 CI）<br />
 韩山师范学院 &nbsp;|&nbsp; 软件工程（五年制专转本衔接）&nbsp;|&nbsp; 2025–2030（大二在读）<br />
 到岗时间：可立即到岗，每周 4–5 天，可连续 6 个月
 </div>
@@ -86,7 +89,7 @@
 </div>
 
 <div class="lab">项目详情</div>
-<ul>
+<ul class="pd">
   <li><b>工具调用</b>：循环手写为 <code>for rnd in range(rounds_limit)</code>（默认 6 轮），
     模型选工具 → 执行 → 结果回填；工具走 MCP（JSON-RPC 独立进程），参数按 schema 校验，
     失败按超时 / 参数 / 权限归因；另用 LangGraph 重写做对照，控制流只差 3 处。</li>
