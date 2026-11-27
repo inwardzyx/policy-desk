@@ -165,8 +165,8 @@
 <h2>其他</h2>
 <ul>
   <li>仓库 <a href="https://github.com/inwardzyx">github.com/inwardzyx</a>：<a href="https://github.com/inwardzyx/policy-desk">policy-desk</a>、<a href="https://github.com/inwardzyx/campus-policy-rag">campus-policy-rag</a>、<a href="https://github.com/inwardzyx/ai-release-gate">ai-release-gate</a> 三个公开仓库，均有 CI 与提交前检查。</li>
-  <li><b>案例与取舍</b>：每个仓库都有 <code>docs/</code>；如 <a href="https://github.com/inwardzyx/ai-release-gate/blob/main/docs/case.md">ai-release-gate/docs/case.md</a> 是一页版案例（问题 / 为什么不选另一个方案 / 11 条判据 / 已知边界）。</li>
-  <li><b>开发方式</b>：用 Claude Code 类工具写代码、自己审查与回滚；接过飞书 Wiki 只读连接器（token 换取、分页、错误码映射）。</li>
+  <li><b>协作方式</b>：AI 编码工具负责写，我定方案、写判据、审 diff、决定提交；验收看判据与产物，不看"看着像对了"。另接过飞书 Wiki 只读连接器（token 换取、分页、错误码映射）。</li>
+  <li><b>工程习惯</b>：仓库内用 <code>HANDOFF</code> / <code>AGENTS</code> 文档做跨会话交接；改前先量基线、改后做配对对照；判据脚本化并做变异验证（改坏必须变红）；提交前跑 pre-commit / pre-push 检查。</li>
 </ul>
 
 </body>
