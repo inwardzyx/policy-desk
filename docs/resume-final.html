@@ -38,7 +38,7 @@
   ul { margin: 0; padding-left: 5mm; }
   li { margin: 0 0 2.0mm; }
   /* 只给第一个项目的 7 条加一点条目间距：两页内容量不同，用局部参数配平 */
-  ul.pd li { margin-bottom: 2.5mm; }
+  ul.pd li { margin-bottom: 3.2mm; }
   code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; background: #eef2f6; padding: 0 1px; }
   .result-first {
     font-size: 9.6pt; margin: 2.2mm 0 0; padding: 1.7mm 2.4mm;
@@ -67,46 +67,29 @@
 
 <h2>专业技能</h2>
 <table class="skill-table">
-  <tr><th>Agent 工程</th><td><b>Agent 循环与工具调用</b>：手写循环（轮次上限 + token 预算）、
-    按 schema 校验工具参数、失败按超时 / 参数 / 权限归因；<b>MCP 两端</b>（stdio + JSON-RPC），能用 LangGraph 重写同一控制流做对照。</td></tr>
-  <tr><th>检索与评测</th><td><b>混合检索 + 精排</b>（bge-small-zh / BM25 / RRF / 精排四段）；
-    <b>评测方法论</b>：105 题盲出独立集 + 9 个场景套件 / 156 条场景用例，先量噪声地板再上 exact McNemar —— 能判断指标差异是真实还是抖动。</td></tr>
-  <tr><th>后端 / 微服务</th><td><b>Java / Spring Boot 3</b>（JdbcTemplate + Hikari、事务、状态机 + rev 乐观锁、发号器原子分配、
-    outbox + Redis Streams 至少一次投递与消费端幂等）；<b>Python / FastAPI</b>（REST、SSE 透传、JWT 与角色到 ACL 投影）。</td></tr>
-  <tr><th>交付与工程化</th><td><b>Docker Compose</b>（PolicyDesk 五容器 / 门禁平台六容器）、Nginx 反代与入口限流、Cloudflare Tunnel、
-    GitHub Actions；写端到端判据并做变异验证（改坏实现确认判据变红）。</td></tr>
+  <tr><th>Agent 工程</th><td><b>Agent 循环与工具调用</b>：手写循环（轮次上限 + token 预算）、按 schema 校验工具参数、失败按超时 / 参数 / 权限归因；<b>MCP 两端</b>（stdio + JSON-RPC），能用 LangGraph 重写同一控制流做对照。</td></tr>
+  <tr><th>检索与评测</th><td><b>混合检索 + 精排</b>（bge-small-zh / BM25 / RRF / 精排四段）；<b>评测方法论</b>：105 题盲出独立集 + 9 个场景套件 / 156 条场景用例，先量噪声地板再上 exact McNemar —— 能判断指标差异是真实还是抖动。</td></tr>
+  <tr><th>后端 / 微服务</th><td><b>Java / Spring Boot 3</b>（JdbcTemplate + Hikari、事务、状态机 + rev 乐观锁、发号器原子分配、outbox + Redis Streams 至少一次投递与消费端幂等）；<b>Python / FastAPI</b>（REST、SSE 透传、JWT 与角色到 ACL 投影）。</td></tr>
+  <tr><th>交付与工程化</th><td><b>Docker Compose</b>（PolicyDesk 五容器 / 门禁平台六容器）、Nginx 反代与入口限流、Cloudflare Tunnel、GitHub Actions；写端到端判据并做变异验证（改坏实现确认判据变红）。</td></tr>
 </table>
 
 <h2>项目经历</h2>
 
 <h3>PolicyDesk：制度文档的多步检索 Agent<span class="when">2026.09 – 2026.11</span></h3>
-<div class="desc">
-  <b>项目背景</b>：制度散落在几十份文档里，员工查一次要翻很久；通用大模型回答没有出处、容易编。
-  产品：Agent 自己决定查几次、查什么，答案给原文条款，查不到就明确拒答，前端时间线显示每一步。
-</div>
+<div class="desc"> <b>项目背景</b>：制度散落在几十份文档里，员工查一次要翻很久；通用大模型回答没有出处、容易编。产品：Agent 自己决定查几次、查什么，答案给原文条款，查不到就明确拒答，前端时间线显示每一步。</div>
 <div class="stack">
   Vue 3 + TypeScript ｜ Spring Boot 3 + MySQL 8 + Redis ｜ Python + FastAPI + bge-small-zh / BM25 / RRF / DeepSeek ｜ MCP + SSE ｜ Docker Compose
 </div>
 
 <div class="lab">项目详情</div>
 <ul class="pd">
-  <li><b>工具调用</b>：循环手写为 <code>for rnd in range(rounds_limit)</code>（默认 6 轮），
-    模型选工具 → 执行 → 结果回填；工具走 MCP（JSON-RPC 独立进程），参数按 schema 校验，
-    失败按超时 / 参数 / 权限归因；另用 LangGraph 重写做对照，控制流只差 3 处。</li>
-  <li><b>拒答</b>：以原问题的过闸结果为准，改写问法命中无关条款也不推翻；
-    修复前可绕过，修复后拒答 26/61 → 40/61（同刻 <code>/chat</code> 41/61）。</li>
-  <li><b>检索与上下文</b>：bge-small-zh 向量 + BM25 + RRF 融合 + 精排；上下文八层 + token 预算 + trace；
-    多轮会话保留最近 3 轮、更早截断（响应报 <code>session_used</code>），超预算显式收尾。</li>
-  <li><b>受限执行</b>：容器内跑代码（断网 / 只读 / 限内存 / 限进程），超时、OOM、联网、写盘
-    四类越界都实测拦截过；默认关闭，按需开启。</li>
-  <li><b>流式与前端</b>：SSE 穿过 FastAPI 与 Spring Boot 两层（Java 只转字节）；前端按事件渲染时间线，
-    16 条单测钉住「算不算成功」，缺 <code>result</code> 即判状态未知。</li>
-  <li><b>评测与交付</b>：105 题盲出集 + 9 套件 / 156 用例，先量噪声地板再上 exact McNemar，
-    能定位是检索、编排还是数据的问题；PolicyDesk 五容器 + Nginx + Tunnel，CI 覆盖后端 / 前端 / 容器 / 评测。</li>
-  <li><b>并发与隔离</b>：一个租户 <b>48</b> 并发把邻居 p95 从 <b>39</b>ms 抬到 <b>292</b>ms（<b>+652%</b>）；
-    限并发、加 4 worker 都无效（后者 <b>+845%</b>，上限按进程算）；用 <code>/health</code> 对照定位到
-    「拒绝风暴占满事件循环」，最终收敛总预算 + 入口 Nginx 限速，降到 <b>+179%</b>（余下劣化是共享 CPU，
-    再往下要 per-tenant 资源权重，当前规模不成立，边界写在文档里）。</li>
+  <li><b>工具调用</b>：循环手写为 <code>for rnd in range(rounds_limit)</code>（默认 6 轮），模型选工具 → 执行 → 结果回填；工具走 MCP（JSON-RPC 独立进程），参数按 schema 校验，失败按超时 / 参数 / 权限归因；另用 LangGraph 重写做对照，控制流只差 3 处。</li>
+  <li><b>拒答</b>：以原问题的过闸结果为准，改写问法命中无关条款也不推翻；修复前可绕过，修复后拒答 26/61 → 40/61（同刻 <code>/chat</code> 41/61）。</li>
+  <li><b>检索与上下文</b>：bge-small-zh 向量 + BM25 + RRF 融合 + 精排；上下文八层 + token 预算 + trace；多轮会话保留最近 3 轮、更早截断（响应报 <code>session_used</code>），超预算显式收尾。</li>
+  <li><b>受限执行</b>：容器内跑代码（断网 / 只读 / 限内存 / 限进程），超时、OOM、联网、写盘四类越界都实测拦截过；默认关闭，按需开启。</li>
+  <li><b>流式与前端</b>：SSE 穿过 FastAPI 与 Spring Boot 两层（Java 只转字节）；前端按事件渲染时间线，16 条单测钉住「算不算成功」，缺 <code>result</code> 即判状态未知。</li>
+  <li><b>评测与交付</b>：105 题盲出集 + 9 套件 / 156 用例，先量噪声地板再上 exact McNemar，能定位是检索、编排还是数据的问题；PolicyDesk 五容器 + Nginx + Tunnel，CI 覆盖后端 / 前端 / 容器 / 评测。</li>
+  <li><b>并发与隔离</b>：一个租户 <b>48</b> 并发把邻居 p95 从 <b>39</b>ms 抬到 <b>292</b>ms（<b>+652%</b>）；限并发、加 4 worker 都无效（后者 <b>+845%</b>，上限按进程算）；用 <code>/health</code> 对照定位到「拒绝风暴占满事件循环」，最终收敛总预算 + 入口 Nginx 限速，降到 <b>+179%</b>（余下劣化是共享 CPU，再往下要 per-tenant 资源权重，当前规模不成立，边界写在文档里）。</li>
 </ul>
 
 <div class="result-first">
@@ -117,33 +100,18 @@
 <div style="page-break-before: always;"></div>
 
 <h3>AI 发布门禁平台<span class="when">2026.11</span></h3>
-<div class="desc">
-  <b>项目背景</b>：问答类应用的迭代很轻——改几句话术、换一版模型就是一次发布，但发布后三件事答不出来：
-  <b>有没有变差</b>（没有上线前量化对比，只能等用户抱怨）、<b>最近改了什么</b>（配置散在代码和 .env 里，没有版本号）、
-  <b>出事怎么退</b>（手工改回去或重新发旧代码）。<br />
-  产品：配置版本化 → 灰度发布 → 自动跑评测门禁 → 不达标自动回滚，全过程可审计。
-</div>
+<div class="desc"> <b>项目背景</b>：问答类应用的迭代很轻——改几句话术、换一版模型就是一次发布，但发布后三件事答不出来：<b>有没有变差</b>（没有上线前量化对比，只能等用户抱怨）、<b>最近改了什么</b>（配置散在代码和 .env 里，没有版本号）、<b>出事怎么退</b>（手工改回去或重新发旧代码）。<br />产品：配置版本化 → 灰度发布 → 自动跑评测门禁 → 不达标自动回滚，全过程可审计。</div>
 <div class="stack">
   Spring Boot 3 × 3 微服务 + Python 执行器 ｜ MySQL（每服务独立库）｜ Redis Streams / outbox ｜ JDK HttpClient ｜ Docker Compose
 </div>
 
 <div class="lab">项目详情</div>
 <ul>
-  <li><b>微服务拆分</b>：配置 / 发布 / 门禁三个服务各自独立库（读多写少 vs 事务写 vs 长任务，故障域不同）；
-    跨服务调用带超时且 fail-closed——版本校验不通过就不许发布，而不是"猜它存在"；
-    不用注册中心 / Gateway（三个服务、地址固定，用不上）。</li>
-  <li><b>并发与幂等</b>：版本号用发号器表原子分配（<b>30</b> 并发零重号，第一版 <code>MAX(version)+1</code> 有 19/30 撞唯一键）；
-    状态迁移用 <code>rev</code> 乐观锁（过期 rev → 409，不是 500 也不是静默成功）；
-    建任务按 <code>event_id</code> 唯一索引幂等（同一事件投 <b>100</b> 次只建 <b>1</b> 个任务）。</li>
-  <li><b>灰度与回滚</b>：SHA-256 稳定分桶（同租户 1000 次结论一致，并用 Python 独立实现交叉验证桶号）；
-    回滚 = <code>current_release</code> 指针原子切换（O(1)、幂等），而不是重新发布旧版本——
-    重新发布要再走一遍校验与门禁，慢且可能失败。</li>
-  <li><b>异步链路</b>：发布与"门禁该跑了"在同一事务里写 outbox，后台扫表投递到 Redis Streams（至少一次），
-    消费端先处理成功再 ack；执行器宕机时发布照常成功、任务不丢，恢复后由扫描器重投自愈。
-    真评测要 30–150 秒，据此把"提交失败"与"还在跑"分开（前者 5 秒重投，后者 300 秒租约）。</li>
-  <li><b>门禁判定</b>：评测真实跑（20 题均匀抽样，按「答案引自资料的比例」打分 <b>0.45</b>），不达标自动回滚、通过则保持 CANARY 等人放量；
-    阈值由发布方自己声明（改 prompt 与换模型风险不同，写死一个全局标准说不清"为什么放行"）；
-    结果回写幂等（同一 job 回调 3 次只生效一次，避免把指针再推一格）。</li>
+  <li><b>微服务拆分</b>：配置 / 发布 / 门禁三个服务各自独立库（读多写少 vs 事务写 vs 长任务，故障域不同）；跨服务调用带超时且 fail-closed——版本校验不通过就不许发布，而不是"猜它存在"；不用注册中心 / Gateway（三个服务、地址固定，用不上）。</li>
+  <li><b>并发与幂等</b>：版本号用发号器表原子分配（<b>30</b> 并发零重号，第一版 <code>MAX(version)+1</code> 有 19/30 撞唯一键）；状态迁移用 <code>rev</code> 乐观锁（过期 rev → 409，不是 500 也不是静默成功）；建任务按 <code>event_id</code> 唯一索引幂等（同一事件投 <b>100</b> 次只建 <b>1</b> 个任务）。</li>
+  <li><b>灰度与回滚</b>：SHA-256 稳定分桶（同租户 1000 次结论一致，并用 Python 独立实现交叉验证桶号）；回滚 = <code>current_release</code> 指针原子切换（O(1)、幂等），而不是重新发布旧版本——重新发布要再走一遍校验与门禁，慢且可能失败。</li>
+  <li><b>异步链路</b>：发布与"门禁该跑了"在同一事务里写 outbox，后台扫表投递到 Redis Streams（至少一次），消费端先处理成功再 ack；执行器宕机时发布照常成功、任务不丢，恢复后由扫描器重投自愈。真评测要 30–150 秒，据此把"提交失败"与"还在跑"分开（前者 5 秒重投，后者 300 秒租约）。</li>
+  <li><b>门禁判定</b>：评测真实跑（20 题均匀抽样，按「答案引自资料的比例」打分 <b>0.45</b>），不达标自动回滚、通过则保持 CANARY 等人放量；阈值由发布方自己声明（改 prompt 与换模型风险不同，写死一个全局标准说不清"为什么放行"）；结果回写幂等（同一 job 回调 3 次只生效一次，避免把指针再推一格）。</li>
   <li><b>状态机与审计</b>：四态 <code>PENDING → CANARY → FULL → ROLLED_BACK</code>，规则收在枚举一处（非法迁移拒绝、回滚后不可复活），每次迁移留 operator / 时间 / 分数。</li>
   <li><b>可观测与工程化</b>：traceId 随事件跨 <b>4</b> 个进程可串（异步靠事件体携带、不靠线程）；一条命令 <code>docker compose up</code> 起门禁平台六容器；<b>16</b> 条单测 + 变异测试（改坏三处实现全部变红）。</li>
 </ul>
