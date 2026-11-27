@@ -47,6 +47,9 @@
     width: 22mm; vertical-align: top; padding: 0.9mm 0;
   }
   .skill-table td { vertical-align: top; padding: 0.9mm 0; line-height: 1.45; }
+  /* 前两行是核心能力：左侧强调条 + 标签变色（不用角标 —— 会超出 22mm 的 th 宽度，被挤成两行） */
+  .skill-table tr.hot th { color: var(--accent); }
+  .skill-table tr.hot td { border-left: 2.2px solid var(--accent); padding-left: 2mm; }
   a { color: var(--accent); text-decoration: none; }
   body { width: 210mm; min-height: 297mm; padding: 11mm 12mm; margin: 0 auto; background: #fff; }
 </style>
@@ -62,20 +65,19 @@
 
 <h2>专业技能</h2>
 <table class="skill-table">
-  <tr><th>Agent 工程</th><td>熟悉 Agent 循环与工具调用：手写循环（轮次上限 + token 预算）、按 schema 校验工具参数、失败按超时 / 参数 / 权限归因；
-    熟悉 MCP 协议两端（stdio + JSON-RPC），能用 LangGraph 重写同一控制流做对照。</td></tr>
-  <tr><th>检索与评测</th><td>熟悉向量 + 关键词混合检索与精排（bge-small-zh / BM25 / RRF / 精排四段）；
-    熟悉评测方法论：105 题盲出独立集 + 9 个场景套件 / 156 条场景用例，先量噪声地板再上 exact McNemar，
-    能判断一个指标差异是真实的还是抖动。</td></tr>
-  <tr><th>后端与并发</th><td>熟悉 Python/FastAPI 与 Java/Spring Boot 3：REST 接口、SSE 流式透传、JWT 与角色到 ACL 的权限投影；
-    会做状态机 + 乐观锁（rev CAS）、发号器原子分配、outbox + Redis Streams 至少一次投递与消费端幂等。</td></tr>
-  <tr><th>交付与运维</th><td>熟悉检索链路与交付：Docker Compose 六容器部署、Nginx 反代与入口限流、Cloudflare Tunnel、GitHub Actions；
-    会写端到端判据脚本并做变异验证（改坏实现确认判据变红）。</td></tr>
+  <tr class="hot"><th>Agent 工程</th><td><b>Agent 循环与工具调用</b>：手写循环（轮次上限 + token 预算）、
+    按 schema 校验工具参数、失败按超时 / 参数 / 权限归因；<b>MCP 两端</b>（stdio + JSON-RPC），能用 LangGraph 重写同一控制流做对照。</td></tr>
+  <tr class="hot"><th>检索与评测</th><td><b>混合检索 + 精排</b>（bge-small-zh / BM25 / RRF / 精排四段）；
+    <b>评测方法论</b>：105 题盲出独立集 + 9 个场景套件 / 156 条场景用例，先量噪声地板再上 exact McNemar —— 能判断指标差异是真实还是抖动。</td></tr>
+  <tr><th>后端与并发</th><td><b>Java / Spring Boot 3</b>（JdbcTemplate + Hikari、事务、状态机 + rev 乐观锁、发号器原子分配、
+    outbox + Redis Streams 至少一次投递与消费端幂等）；<b>Python / FastAPI</b>（REST、SSE 透传、JWT 与角色到 ACL 投影）。</td></tr>
+  <tr><th>交付与工程化</th><td><b>Docker Compose</b>（PolicyDesk 五容器 / 门禁平台六容器）、Nginx 反代与入口限流、Cloudflare Tunnel、
+    GitHub Actions；写端到端判据并做变异验证（改坏实现确认判据变红）。</td></tr>
 </table>
 
 <h2>项目经历</h2>
 
-<h3>PolicyDesk：制度文档的多步检索 Agent<span class="role">（独立开发）</span><span class="when">2026.09 – 2026.11</span></h3>
+<h3>PolicyDesk：制度文档的多步检索 Agent<span class="when">2026.09 – 2026.11</span></h3>
 <div class="desc">
   <b>项目背景</b>：制度散落在几十份文档里，员工查一次要翻很久；通用大模型回答没有出处、容易编。
   产品：Agent 自己决定查几次、查什么，答案给原文条款，查不到就明确拒答，前端时间线显示每一步。
@@ -112,7 +114,7 @@
 
 <div style="page-break-before: always;"></div>
 
-<h3>AI 发布门禁平台<span class="role">（独立开发）</span><span class="when">2026.11</span></h3>
+<h3>AI 发布门禁平台<span class="when">2026.11</span></h3>
 <div class="desc">
   <b>项目背景</b>：问答类应用的迭代很轻——改几句话术、换一版模型就是一次发布，但发布后三件事答不出来：
   <b>有没有变差</b>（没有上线前量化对比，只能等用户抱怨）、<b>最近改了什么</b>（配置散在代码和 .env 里，没有版本号）、
