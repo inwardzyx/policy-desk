@@ -15,7 +15,7 @@
   html, body {
     margin: 0; color: var(--ink);
     font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
-    font-size: 10pt; line-height: 1.46;
+    font-size: 10pt; line-height: 1.55;
   }
   h1 { font-size: 21pt; margin: 0 0 1.6mm; letter-spacing: 1.5px; font-weight: 600; }
   .intent { font-size: 10.6pt; color: var(--accent); font-weight: 600; margin: 0 0 1.4mm; }
@@ -35,7 +35,7 @@
   .stack { font-size: 9pt; color: var(--muted); margin: 0 0 1.9mm; line-height: 1.5; }
   .lab { font-size: 9.8pt; font-weight: 600; color: var(--accent); margin: 2.5mm 0 1.2mm; }
   ul { margin: 0; padding-left: 5mm; }
-  li { margin: 0 0 1.15mm; }
+  li { margin: 0 0 1.5mm; }
   code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; background: #eef2f6; padding: 0 1px; }
   .result-first {
     font-size: 9.6pt; margin: 2.2mm 0 0; padding: 1.7mm 2.4mm;
@@ -47,7 +47,10 @@
     width: 22mm; vertical-align: top; padding: 1.25mm 0;
   }
   .skill-table td { vertical-align: top; padding: 1.25mm 0; line-height: 1.5; }
-  a { color: var(--accent); text-decoration: none; }
+  /* 链接只靠颜色不够：打印/截图后蓝色变淡，读者不知道能点 ⇒ 细下划线做视觉信号 */
+  a { color: var(--accent); text-decoration: underline;
+      text-decoration-thickness: 0.6px; text-underline-offset: 1.6px;
+      text-decoration-color: rgba(31, 78, 121, 0.45); }
   body { width: 210mm; min-height: 297mm; padding: 11mm 12mm; margin: 0 auto; background: #fff; }
 </style>
 </head>
@@ -88,17 +91,17 @@
   <li><b>工具调用</b>：循环手写为 <code>for rnd in range(rounds_limit)</code>（默认 6 轮），
     模型选工具 → 执行 → 结果回填；工具走 MCP（JSON-RPC 独立进程），参数按 schema 校验，
     失败按超时 / 参数 / 权限归因；另用 LangGraph 重写做对照，控制流只差 3 处。</li>
-  <li>拒答：以原问题的过闸结果为准，改写问法命中无关条款也不推翻；
+  <li><b>拒答</b>：以原问题的过闸结果为准，改写问法命中无关条款也不推翻；
     修复前可绕过，修复后拒答 26/61 → 40/61（同刻 <code>/chat</code> 41/61）。</li>
-  <li>检索与上下文：bge-small-zh 向量 + BM25 + RRF 融合 + 精排；上下文八层 + token 预算 + trace；
+  <li><b>检索与上下文</b>：bge-small-zh 向量 + BM25 + RRF 融合 + 精排；上下文八层 + token 预算 + trace；
     多轮会话保留最近 3 轮、更早截断（响应报 <code>session_used</code>），超预算显式收尾。</li>
-  <li>受限执行：容器内跑代码（断网 / 只读 / 限内存 / 限进程），超时、OOM、联网、写盘
+  <li><b>受限执行</b>：容器内跑代码（断网 / 只读 / 限内存 / 限进程），超时、OOM、联网、写盘
     四类越界都实测拦截过；默认关闭，按需开启。</li>
-  <li>流式与前端：SSE 穿过 FastAPI 与 Spring Boot 两层（Java 只转字节）；前端按事件渲染时间线，
+  <li><b>流式与前端</b>：SSE 穿过 FastAPI 与 Spring Boot 两层（Java 只转字节）；前端按事件渲染时间线，
     16 条单测钉住「算不算成功」，缺 <code>result</code> 即判状态未知。</li>
-  <li>评测与交付：105 题盲出集 + 9 套件 / 156 用例，先量噪声地板再上 exact McNemar，
+  <li><b>评测与交付</b>：105 题盲出集 + 9 套件 / 156 用例，先量噪声地板再上 exact McNemar，
     能定位是检索、编排还是数据的问题；PolicyDesk 五容器 + Nginx + Tunnel，CI 覆盖后端 / 前端 / 容器 / 评测。</li>
-  <li>并发与隔离：一个租户 <b>48</b> 并发把邻居 p95 从 <b>39</b>ms 抬到 <b>292</b>ms（<b>+652%</b>）；
+  <li><b>并发与隔离</b>：一个租户 <b>48</b> 并发把邻居 p95 从 <b>39</b>ms 抬到 <b>292</b>ms（<b>+652%</b>）；
     限并发、加 4 worker 都无效（后者 <b>+845%</b>，上限按进程算）；用 <code>/health</code> 对照定位到
     「拒绝风暴占满事件循环」，最终收敛总预算 + 入口 Nginx 限速，降到 <b>+179%</b>（余下劣化是共享 CPU，
     再往下要 per-tenant 资源权重，当前规模不成立，边界写在文档里）。</li>
@@ -127,20 +130,20 @@
   <li><b>微服务拆分</b>：配置 / 发布 / 门禁三个服务各自独立库（读多写少 vs 事务写 vs 长任务，故障域不同）；
     跨服务调用带超时且 fail-closed——版本校验不通过就不许发布，而不是"猜它存在"；
     不用注册中心 / Gateway（三个服务、地址固定，用不上）。</li>
-  <li>并发与幂等：版本号用发号器表原子分配（<b>30</b> 并发零重号，第一版 <code>MAX(version)+1</code> 有 19/30 撞唯一键）；
+  <li><b>并发与幂等</b>：版本号用发号器表原子分配（<b>30</b> 并发零重号，第一版 <code>MAX(version)+1</code> 有 19/30 撞唯一键）；
     状态迁移用 <code>rev</code> 乐观锁（过期 rev → 409，不是 500 也不是静默成功）；
     建任务按 <code>event_id</code> 唯一索引幂等（同一事件投 <b>100</b> 次只建 <b>1</b> 个任务）。</li>
-  <li>灰度与回滚：SHA-256 稳定分桶（同租户 1000 次结论一致，并用 Python 独立实现交叉验证桶号）；
+  <li><b>灰度与回滚</b>：SHA-256 稳定分桶（同租户 1000 次结论一致，并用 Python 独立实现交叉验证桶号）；
     回滚 = <code>current_release</code> 指针原子切换（O(1)、幂等），而不是重新发布旧版本——
     重新发布要再走一遍校验与门禁，慢且可能失败。</li>
-  <li>异步链路：发布与"门禁该跑了"在同一事务里写 outbox，后台扫表投递到 Redis Streams（至少一次），
+  <li><b>异步链路</b>：发布与"门禁该跑了"在同一事务里写 outbox，后台扫表投递到 Redis Streams（至少一次），
     消费端先处理成功再 ack；执行器宕机时发布照常成功、任务不丢，恢复后由扫描器重投自愈。
     真评测要 20–80 秒，据此把"提交失败"与"还在跑"分开（前者 5 秒重投，后者 300 秒租约）。</li>
-  <li>门禁判定：评测真实跑（20 题均匀抽样，18/20 = 0.90，两次一致），不达标自动回滚、通过则保持 CANARY 等人放量；
+  <li><b>门禁判定</b>：评测真实跑（20 题均匀抽样，18/20 = 0.90，两次一致），不达标自动回滚、通过则保持 CANARY 等人放量；
     阈值由发布方自己声明（改 prompt 与换模型风险不同，写死一个全局标准说不清"为什么放行"）；
     结果回写幂等（同一 job 回调 3 次只生效一次，避免把指针再推一格）。</li>
-  <li>状态机与审计：四态 <code>PENDING → CANARY → FULL → ROLLED_BACK</code>，规则收在枚举一处（非法迁移拒绝、回滚后不可复活），每次迁移留 operator / 时间 / 分数。</li>
-  <li>可观测与工程化：traceId 随事件跨 <b>4</b> 个进程可串（异步靠事件体携带、不靠线程）；一条命令 <code>docker compose up</code> 起门禁平台六容器；<b>16</b> 条单测 + 变异测试（改坏三处实现全部变红）。</li>
+  <li><b>状态机与审计</b>：四态 <code>PENDING → CANARY → FULL → ROLLED_BACK</code>，规则收在枚举一处（非法迁移拒绝、回滚后不可复活），每次迁移留 operator / 时间 / 分数。</li>
+  <li><b>可观测与工程化</b>：traceId 随事件跨 <b>4</b> 个进程可串（异步靠事件体携带、不靠线程）；一条命令 <code>docker compose up</code> 起门禁平台六容器；<b>16</b> 条单测 + 变异测试（改坏三处实现全部变红）。</li>
 </ul>
 
 <div class="result-first">
@@ -156,12 +159,14 @@
   <tr><th>门禁</th><td>真评测 18/20 · 门槛 0.80 通过 / 0.95 自动回滚 · 回调 3 次只生效 1 次</td></tr>
   <tr><th>容量与可观测</th><td>/api/gray 约 2000 rps 饱和、16 并发内 p95 &lt; 16ms · traceId 跨 4 个进程可串 · 门禁 20 题 / 78 秒</td></tr>
   <tr><th>故障</th><td>执行器宕机：发布照常成功 · 任务不丢 · 恢复后扫描器重投自愈</td></tr>
+  <tr><th>单测 / 变异</th><td>16 条单测（H2 真 SQL）· 3 处变异全部变红 · CI 跑 mvn test + 变异 + compose 校验</td></tr>
 </table>
 
 <h2>其他</h2>
 <ul>
   <li>仓库 <a href="https://github.com/inwardzyx">github.com/inwardzyx</a>：<a href="https://github.com/inwardzyx/policy-desk">policy-desk</a>、<a href="https://github.com/inwardzyx/campus-policy-rag">campus-policy-rag</a>、<a href="https://github.com/inwardzyx/ai-release-gate">ai-release-gate</a> 三个公开仓库，均有 CI 与提交前检查。</li>
-  <li>开发方式：用 Claude Code 类工具写代码、自己审查与回滚；接过飞书 Wiki 只读连接器（token 换取、分页、错误码映射）。</li>
+  <li><b>案例与取舍</b>：每个仓库都有 <code>docs/</code>；如 <a href="https://github.com/inwardzyx/ai-release-gate/blob/main/docs/case.md">ai-release-gate/docs/case.md</a> 是一页版案例（问题 / 为什么不选另一个方案 / 11 条判据 / 已知边界）。</li>
+  <li><b>开发方式</b>：用 Claude Code 类工具写代码、自己审查与回滚；接过飞书 Wiki 只读连接器（token 换取、分页、错误码映射）。</li>
 </ul>
 
 </body>
