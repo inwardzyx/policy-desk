@@ -47,9 +47,6 @@
     width: 22mm; vertical-align: top; padding: 0.9mm 0;
   }
   .skill-table td { vertical-align: top; padding: 0.9mm 0; line-height: 1.45; }
-  /* 前两行是核心能力：左侧强调条 + 标签变色（不用角标 —— 会超出 22mm 的 th 宽度，被挤成两行） */
-  .skill-table tr.hot th { color: var(--accent); }
-  .skill-table tr.hot td { border-left: 2.2px solid var(--accent); padding-left: 2mm; }
   a { color: var(--accent); text-decoration: none; }
 </style>
 </head>
@@ -64,9 +61,9 @@
 
 <h2>专业技能</h2>
 <table class="skill-table">
-  <tr class="hot"><th>Agent 工程</th><td><b>Agent 循环与工具调用</b>：手写循环（轮次上限 + token 预算）、
+  <tr><th>Agent 工程</th><td><b>Agent 循环与工具调用</b>：手写循环（轮次上限 + token 预算）、
     按 schema 校验工具参数、失败按超时 / 参数 / 权限归因；<b>MCP 两端</b>（stdio + JSON-RPC），能用 LangGraph 重写同一控制流做对照。</td></tr>
-  <tr class="hot"><th>检索与评测</th><td><b>混合检索 + 精排</b>（bge-small-zh / BM25 / RRF / 精排四段）；
+  <tr><th>检索与评测</th><td><b>混合检索 + 精排</b>（bge-small-zh / BM25 / RRF / 精排四段）；
     <b>评测方法论</b>：105 题盲出独立集 + 9 个场景套件 / 156 条场景用例，先量噪声地板再上 exact McNemar —— 能判断指标差异是真实还是抖动。</td></tr>
   <tr><th>后端 / 微服务</th><td><b>Java / Spring Boot 3</b>（JdbcTemplate + Hikari、事务、状态机 + rev 乐观锁、发号器原子分配、
     outbox + Redis Streams 至少一次投递与消费端幂等）；<b>Python / FastAPI</b>（REST、SSE 透传、JWT 与角色到 ACL 投影）。</td></tr>
@@ -150,25 +147,14 @@
   11 条端到端判据全绿 · 执行器宕机时任务不丢、恢复后自愈 · 单次门禁 20 题 / <b>78</b> 秒
 </div>
 
-<h2>工程方法与质量</h2>
-<ul>
-  <li><b>判据先于实现</b>：两个项目共 11 条端到端判据 + 16 条单测，每条都能反向验证——
-    把实现改坏，判据必须变红；只绿不红的检查视为没写。</li>
-  <li><b>缺失 ≠ 零</b>：评测请求被限流时记 <code>errored</code> 而不是记 0 分；错误率超过 10% 直接拒绝判决，
-    宁可这一次不判，也不拿脏数据给出结论。</li>
-  <li><b>先量后改</b>：改性能/成本前先量基线（如评测噪声地板、p95 对照），结论用配对对照，
-    不拿两次独立运行的差值当结论。</li>
-  <li><b>假绿是最大风险</b>：三次遇到"旧进程仍服务旧代码"（旧 jar / 镜像 / 执行器）⇒ 服务都报运行指纹，
-    判据第一步先断言"在测我以为的那个东西"。</li>
-</ul>
-
 <h2>关键判据一览</h2>
 <table class="skill-table">
   <tr><th>幂等 / 并发</th><td>30 并发建版本 → 无重号 · 30 并发同 key 只有 1 条 · 过期 rev → 409</td></tr>
   <tr><th>灰度</th><td>同租户 1000 次同结论 · 桶号与 Python 实现 20/20 一致 · 百分比单调</td></tr>
   <tr><th>消息</th><td>同事件投 100 次 → 只建 1 个任务 · 消费后 pending = 0</td></tr>
   <tr><th>门禁</th><td>真评测 18/20 · 门槛 0.80 通过 / 0.95 自动回滚 · 回调 3 次只生效 1 次</td></tr>
-  <tr><th>容量 / 故障</th><td>/api/gray 约 2000 rps、16 并发内 p95 &lt; 16ms · traceId 跨 4 进程 · 执行器宕机任务不丢、恢复自愈</td></tr>
+  <tr><th>容量与可观测</th><td>/api/gray 约 2000 rps 饱和、16 并发内 p95 &lt; 16ms · traceId 跨 4 个进程可串 · 门禁 20 题 / 78 秒</td></tr>
+  <tr><th>故障</th><td>执行器宕机：发布照常成功 · 任务不丢 · 恢复后扫描器重投自愈</td></tr>
 </table>
 
 <h2>其他</h2>
